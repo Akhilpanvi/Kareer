@@ -10,10 +10,10 @@ export const dynamic = 'force-dynamic'
 
 export default function ForgotPasswordPage() {
   return (
-    <AuthCard title="Forgot your password?" description="Enter your registration number or email. We'll send a reset link to the email address on your account.">
+    <AuthCard title="Forgot your password?" description="Enter your account email and we'll send you a reset link.">
       {resetEnabled() ? (
         <ActionForm action={requestReset} submit="Send reset link">
-          <Field label="Registration number or email"><input name="id" required maxLength={120} autoComplete="username" autoFocus className="input" /></Field>
+          <Field label="Email"><input name="id" type="email" required maxLength={120} autoComplete="email" autoFocus className="input" /></Field>
         </ActionForm>
       ) : (
         <p className="text-sm text-zinc-600">Email reset isn&apos;t set up yet. Contact the Placement Cell to reset your password.</p>

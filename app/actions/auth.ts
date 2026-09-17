@@ -21,12 +21,12 @@ function unavailable(where: string, e: unknown): State {
 export async function login(_: State, fd: FormData): Promise<State> {
   const id = str(fd, 'id', 120)
   const password = String(fd.get('password') ?? '').slice(0, 128)
-  if (!id || !password) return { error: 'Enter your registration number or email and password.' }
+  if (!id || !password) return { error: 'Enter your email and password.' }
 
   let to: string
   try {
     await db()
-    const user = await User.findOne(id.includes('@') ? { email: id.toLowerCase() } : { regNo: id.toUpperCase() })
+    const user = await User.findOne({ email: id.toLowerCase() })
       .select('+passwordHash role active sessionVersion failedLogins lockedUntil mustChangePassword')
     if (user?.lockedUntil && user.lockedUntil > new Date()) return { error: 'Too many failed attempts. Try again in 15 minutes.' }
 
@@ -83,12 +83,12 @@ const sha256 = (v: string) => createHash('sha256').update(v).digest('hex')
 export async function requestReset(_: State, fd: FormData): Promise<State> {
   if (!resetEnabled()) return { error: 'Password reset by email is not available. Contact the Placement Cell.' }
   const id = str(fd, 'id', 120)
-  if (!id) return { error: 'Enter your registration number or email.' }
+  if (!id) return { error: 'Enter your email.' }
   const sent = { ok: 'If an account matches, we have emailed a reset link to its address. The link expires in 30 minutes.' }
 
   try {
     await db()
-    const user = await User.findOne(id.includes('@') ? { email: id.toLowerCase() } : { regNo: id.toUpperCase() }).select('name email active resetRequestedAt').lean()
+    const user = await User.findOne({ email: id.toLowerCase() }).select('name email active resetRequestedAt').lean()
     if (!user?.active || (user.resetRequestedAt && Date.now() - +user.resetRequestedAt < RESET_GAP)) return sent
 
     const token = randomBytes(32).toString('base64url')

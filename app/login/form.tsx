@@ -7,8 +7,8 @@ export function LoginForm() {
   return (
     <form action={run} className="mt-8 space-y-4">
       <label className="block">
-        <span className="label">Registration number or email</span>
-        <input name="id" required autoComplete="username" autoFocus className="input" placeholder="2300030001" />
+        <span className="label">Email</span>
+        <input name="id" type="email" required maxLength={120} autoComplete="email" autoFocus className="input" placeholder="name@kluniversity.in" />
       </label>
       <label className="block">
         <span className="label">Password</span>

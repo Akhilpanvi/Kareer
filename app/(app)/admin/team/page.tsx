@@ -17,7 +17,7 @@ export default async function TeamPage() {
 
   return (
     <>
-      <PageHeader title="Placement Cell Team" description="Admin accounts that can manage students and readiness data." />
+      <PageHeader title="Placement Cell Team" description="Admin accounts that can manage students and profile data." />
 
       <Card title="Add an admin" className="mb-5">
         <Disclosure label="Add admin">

@@ -4,6 +4,8 @@ import { requireUser } from '@/lib/auth'
 import { logout } from '@/app/actions/auth'
 import { Avatar, Brand } from '@/components/ui'
 import { Nav } from '@/components/nav'
+import { Assistant } from '@/components/assistant'
+import { assistantEnabled } from '@/lib/assistant'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const me = await requireUser()
@@ -33,6 +35,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </div>
       </aside>
       <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</main>
+      {me.role === 'student' && assistantEnabled() && <Assistant />}
     </div>
   )
 }

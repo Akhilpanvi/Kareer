@@ -18,6 +18,6 @@ export async function GET(req: NextRequest) {
     return COLS.map(c => cell(flat[c])).join(',')
   })
   return new NextResponse([COLS.join(','), ...lines].join('\n'), {
-    headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="kareers-students-${new Date().toISOString().slice(0, 10)}.csv"`, 'Cache-Control': 'no-store' },
+    headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="kloop-students-${new Date().toISOString().slice(0, 10)}.csv"`, 'Cache-Control': 'no-store' },
   })
 }

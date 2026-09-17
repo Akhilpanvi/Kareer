@@ -24,6 +24,9 @@ const userSchema = new Schema(
     resetTokenHash: { type: String, select: false, index: { sparse: true } },
     resetTokenExpires: { type: Date, select: false },
     resetRequestedAt: Date,
+    aiDay: { type: String, select: false },
+    aiCount: { type: Number, select: false },
+    aiAt: { type: Date, select: false },
 
     branch: String,
     batch: String,
@@ -33,7 +36,7 @@ const userSchema = new Schema(
     headline: String,
     bio: String,
     cgpa: Number,
-    links: { linkedin: String, portfolio: String, resume: String },
+    links: { linkedin: String, portfolio: String },
 
     // platform key -> username, e.g. { github: 'octocat' }
     handles: { type: Map, of: String, default: {} },

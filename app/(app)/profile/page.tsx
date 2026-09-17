@@ -33,11 +33,10 @@ export default async function ProfilePage() {
                 <Field label="Phone"><input name="phone" maxLength={20} defaultValue={user.phone ?? ''} className="input" inputMode="tel" /></Field>
                 <Field label="CGPA"><input name="cgpa" type="number" step="0.01" min={0} max={10} defaultValue={user.cgpa ?? ''} className="input" /></Field>
               </div>
-              <fieldset className="grid gap-4 border-t border-zinc-100 pt-5 sm:grid-cols-3">
+              <fieldset className="grid gap-4 border-t border-zinc-100 pt-5 sm:grid-cols-2">
                 <legend className="mb-3 text-sm font-semibold">Links</legend>
                 <Field label="LinkedIn"><input name="linkedin" type="url" defaultValue={user.links?.linkedin ?? ''} className="input" placeholder="https://linkedin.com/in/…" /></Field>
                 <Field label="Portfolio"><input name="portfolio" type="url" defaultValue={user.links?.portfolio ?? ''} className="input" placeholder="https://" /></Field>
-                <Field label="Resume"><input name="resume" type="url" defaultValue={user.links?.resume ?? ''} className="input" placeholder="https://drive.google.com/…" /></Field>
               </fieldset>
               <fieldset className="grid gap-4 border-t border-zinc-100 pt-5 sm:grid-cols-2">
                 <legend className="mb-1 text-sm font-semibold">Coding platforms</legend>

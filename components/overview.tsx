@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Activity, Award, BadgeCheck, Code2, ExternalLink, FileText, Briefcase, FolderGit2, GitBranch, Globe, Sparkles, Star, Target, TrendingUp, Trophy } from 'lucide-react'
+import { Activity, Award, BadgeCheck, Code2, ExternalLink, Briefcase, FolderGit2, GitBranch, Globe, Sparkles, Star, Target, TrendingUp, Trophy } from 'lucide-react'
 import { Bars, Difficulty, Heatmap, ScoreRing } from './charts'
 import { Avatar, Badge, Card, Empty, Meter, Stat } from './ui'
 import { ago, fmt, monthYear } from '@/lib/format'
@@ -52,7 +52,6 @@ export function Overview({ student, actions, self }: { student: Student; actions
   const links = [
     user.links?.linkedin && { href: user.links.linkedin, label: 'LinkedIn', icon: Briefcase },
     user.links?.portfolio && { href: user.links.portfolio, label: 'Portfolio', icon: Globe },
-    user.links?.resume && { href: user.links.resume, label: 'Resume', icon: FileText },
     ...Object.entries(user.handles ?? {}).filter(([p]) => PLATFORMS[p]).map(([p, h]) => ({ href: PLATFORMS[p].url(h), label: PLATFORMS[p].label, icon: ExternalLink })),
   ].filter(Boolean) as { href: string; label: string; icon: typeof Globe }[]
   const add = (href: string, text: string) => (self ? <Link href={href} prefetch={false} className="text-xs font-medium text-brand-700 hover:underline">{text}</Link> : undefined)
@@ -83,7 +82,7 @@ export function Overview({ student, actions, self }: { student: Student; actions
           <ScoreRing score={user.score ?? 0} />
           <div className="min-w-0 space-y-2">
             <div>
-              <div className="text-sm font-semibold">Placement readiness</div>
+              <div className="text-sm font-semibold">Profile strength</div>
               <div className="text-xs text-zinc-500">{lastSync ? `Platforms synced ${ago(lastSync)}` : 'No platform data yet'}</div>
             </div>
             {actions}
@@ -105,7 +104,7 @@ export function Overview({ student, actions, self }: { student: Student; actions
           {activeDays ? <Heatmap days={days} /> : <Empty>Connect GitHub or LeetCode to see daily activity.</Empty>}
           <p className="mt-3 text-xs text-zinc-500">GitHub contributions and LeetCode submissions combined{gh && gh.contributions == null ? ' (GitHub calendar requires a server token)' : ''}.</p>
         </Card>
-        <Card title="Readiness breakdown" icon={Target}>
+        <Card title="Profile strength breakdown" icon={Target}>
           <ul className="space-y-3">
             {(Object.keys(MAX) as (keyof typeof MAX)[]).map(k => (
               <li key={k} className="text-sm">

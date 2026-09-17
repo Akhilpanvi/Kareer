@@ -38,7 +38,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
 
   return (
     <>
-      <PageHeader title="Students" description="Placement readiness across the cohort.">
+      <PageHeader title="Students" description="Profile strength across the cohort.">
         <a href={`/api/admin/export${qs({ page: '' })}`} className="btn-outline"><Download className="size-4" />Export CSV</a>
       </PageHeader>
 
@@ -46,8 +46,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
 
       <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label="Students" value={fmt(summary?.n ?? 0)} />
-        <Stat label="Average readiness" value={Math.round(summary?.avg ?? 0)} hint="out of 100" />
-        <Stat label="Placement ready" value={fmt(summary?.ready ?? 0)} hint="readiness ≥ 60" />
+        <Stat label="Average profile strength" value={Math.round(summary?.avg ?? 0)} hint="out of 100" />
+        <Stat label="Strong profiles" value={fmt(summary?.ready ?? 0)} hint="profile strength ≥ 60" />
         <Stat label="LeetCode connected" value={fmt(summary?.connected ?? 0)} hint={summary?.n ? `${Math.round((summary.connected / summary.n) * 100)}% of students` : undefined} />
       </div>
 
@@ -105,7 +105,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
             {batches.filter(Boolean).sort().map(b => <option key={b}>{b}</option>)}
           </select>
           <select name="sort" defaultValue={params.sort ?? 'score'} className="input w-auto" aria-label="Sort by">
-            <option value="score">Sort: Readiness</option>
+            <option value="score">Sort: Profile strength</option>
             <option value="leetcode">Sort: LeetCode</option>
             <option value="codechef">Sort: CodeChef</option>
             <option value="github">Sort: GitHub</option>
@@ -132,7 +132,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                   <th className="w-10 px-4 py-2.5"><SelectAll formId="bulk-form" /></th>
                   <th className="px-4 py-2.5">Student</th>
                   <th className="px-4 py-2.5">Branch · Batch</th>
-                  <th className="w-40 px-4 py-2.5">Readiness</th>
+                  <th className="w-40 px-4 py-2.5">Profile strength</th>
                   <th className="px-4 py-2.5 text-right">LeetCode</th>
                   <th className="px-4 py-2.5 text-right">CodeChef</th>
                   <th className="px-4 py-2.5 text-right">GitHub</th>
@@ -155,7 +155,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                     </td>
                     <td className="px-4 py-2.5 text-zinc-600">{[s.branch, s.batch].filter(Boolean).join(' · ') || '—'}</td>
                     <td className="px-4 py-2.5">
-                      <div className="flex items-center gap-2"><Meter value={s.score ?? 0} label="Readiness" /><span className="w-7 text-right tabular-nums">{s.score ?? 0}</span></div>
+                      <div className="flex items-center gap-2"><Meter value={s.score ?? 0} label="Profile strength" /><span className="w-7 text-right tabular-nums">{s.score ?? 0}</span></div>
                     </td>
                     <td className="px-4 py-2.5 text-right tabular-nums">{fmt(s.metrics?.lcSolved)}</td>
                     <td className="px-4 py-2.5 text-right tabular-nums">{fmt(s.metrics?.ccRating)}</td>

@@ -101,7 +101,7 @@ export function Brand({ compact }: { compact?: boolean }) {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/brand/kl-seal.png" alt="KL University" className="size-9" />
       <span className="leading-tight">
-        <span className="block text-[15px] font-semibold tracking-tight text-zinc-900">Kareers</span>
+        <span className="block text-[15px] font-semibold tracking-tight text-zinc-900">Kloop</span>
         {!compact && <span className="block text-[11px] text-zinc-500">Placement Cell · KL University</span>}
       </span>
     </span>

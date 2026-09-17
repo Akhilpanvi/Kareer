@@ -1,8 +1,8 @@
-# Kareers
+# Kloop
 
-Placement Cell platform for KL University — every student gets a login and a single profile showing coding activity, projects, certifications and a placement readiness score.
+Placement Cell platform for KL University — every student gets a login and a single profile showing coding activity, projects, certifications and a profile strength score.
 
-**Live:** https://kareer.klef.me
+**Live:** https://kloop.klef.me
 
 Next.js 16 (App Router) · TypeScript · Tailwind CSS 4 · MongoDB + Mongoose · Vercel
 
@@ -23,7 +23,7 @@ app/
 lib/
   platforms/                one file per platform + registry & sync engine
   auth.ts session.ts        signed HttpOnly session cookie, DB-verified
-  score.ts                  readiness score (0–100)
+  score.ts                  profile strength score (0–100)
 models/  User, PlatformStat
 scripts/seed.ts             creates/updates students from CSV
 proxy.ts                    route guard (optimistic; pages re-verify)
@@ -73,13 +73,18 @@ npm run dev
 | `GITHUB_TOKEN` | classic token, no scopes — enables contribution calendar, 5000 req/h |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | seed-only; first admin account |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | enables "Forgot password?" emails (see below); without them the link is hidden in production |
-| `APP_URL` | base URL used in reset links, default `https://kareer.klef.me` |
+| `GEMINI_API_KEY`, `GEMINI_MODEL`, `GEMINI_DAILY_LIMIT` | Kloop Coach; default model `gemini-3.6-flash` |
+| `APP_URL` | base URL used in reset links, default `https://kloop.klef.me` |
 
 ### Seeding students
 
 `npm run seed -- <file.csv> [--reset-passwords]`
 
 Columns: `regNo,name,email,branch,batch,campus,section,phone,github,leetcode,codechef,codeforces,password` (see `data/students.example.csv`). Matching is by `regNo`, so re-running updates students in place. New students without a `password` get a random one; all issued credentials are written to `data/credentials-<timestamp>.csv` (gitignored, mode 600) — distribute securely and delete. Admins can also issue a temporary password per student from the admin panel.
+
+### Kloop Coach (Gemini)
+
+Students get a read-only coach grounded in their own cached profile (skills, projects, coding stats, profile strength). It never sees email, phone, registration number or other students, and has no tools, so it cannot change records. `GEMINI_API_KEY` stays server-side; each student gets `GEMINI_DAILY_LIMIT` questions/day (default 20) with a 4 s gap, enforced atomically in MongoDB. Without a key the Coach button is hidden.
 
 ### Passwords
 
@@ -96,12 +101,12 @@ SMTP_PORT=587
 SMTP_SECURE=false
 SMTP_USER=passkey.crt@gmail.com
 SMTP_PASSWORD=<Google App Password>
-SMTP_FROM="Kareer OTP <otp@kareer.klef.me>"
+SMTP_FROM="Kloop <no-reply@kloop.klef.me>"
 ```
 
 1. On the Google account: turn on 2-Step Verification, then create an **App Password** (Security → App passwords). Use it as `SMTP_PASSWORD`; the normal account password is rejected.
-2. To send as `otp@kareer.klef.me`, add it in Gmail → Settings → Accounts → **Send mail as** and confirm it (the address must receive mail — e.g. Cloudflare Email Routing forwarding `otp@kareer.klef.me` to the Gmail inbox). Until then Gmail rewrites the sender to `passkey.crt@gmail.com`.
-3. For deliverability, in Cloudflare DNS add TXT on `kareer`: `v=spf1 include:_spf.google.com ~all`. (Gmail can't DKIM-sign a custom domain on a free account, so some messages may land in spam.)
+2. To send as `no-reply@kloop.klef.me`, add it in Gmail → Settings → Accounts → **Send mail as** and confirm it (the address must receive mail — e.g. Cloudflare Email Routing forwarding `no-reply@kloop.klef.me` to the Gmail inbox). Until then Gmail rewrites the sender to `passkey.crt@gmail.com`.
+3. For deliverability, in Cloudflare DNS add TXT on `kloop`: `v=spf1 include:_spf.google.com ~all`. (Gmail can't DKIM-sign a custom domain on a free account, so some messages may land in spam.)
 4. Set the variables in Vercel and redeploy. Gmail allows about 500 emails/day.
 
 In development without SMTP settings, reset emails are printed to the server console.
@@ -110,6 +115,6 @@ In development without SMTP settings, reset emails are printed to the server con
 
 1. Import the repository, framework preset Next.js.
 2. Add the environment variables above (Production).
-3. Add the domain `kareer.klef.me` and point a `CNAME` to `cname.vercel-dns.com`.
+3. Add the domain `kloop.klef.me` and point a `CNAME` to `cname.vercel-dns.com`.
 4. In MongoDB Atlas → Network Access, allow `0.0.0.0/0` (Vercel has no fixed IPs on the free tier).
 5. `vercel.json` schedules the refresh cron daily (Hobby plan limit).

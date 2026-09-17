@@ -1,6 +1,6 @@
 import { Types } from 'mongoose'
 import { db } from '../db'
-import { readiness } from '../score'
+import { profileStrength } from '../score'
 import { PlatformStat } from '@/models/PlatformStat'
 import { User } from '@/models/User'
 import { github } from './github'
@@ -65,7 +65,7 @@ export async function recompute(userId: Types.ObjectId | string) {
   ])
   if (!user) return
   const metrics = Object.assign({}, ...stats.map(s => s.metrics))
-  await User.updateOne({ _id: userId }, { $set: { metrics, score: readiness(user, metrics) } })
+  await User.updateOne({ _id: userId }, { $set: { metrics, score: profileStrength(user, metrics) } })
 }
 
 type Claimable = { _id: Types.ObjectId; user?: Types.ObjectId; platform: string; handle: string }

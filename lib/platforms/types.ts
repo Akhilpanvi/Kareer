@@ -13,7 +13,7 @@ export type Platform = {
   fetch: (handle: string) => Promise<Fetched | null> // null = account not found
 }
 
-export const UA = 'Mozilla/5.0 (compatible; KareersBot/1.0; +https://kareer.klef.me)'
+export const UA = 'Mozilla/5.0 (compatible; KloopBot/1.0; +https://kloop.klef.me)'
 
 export async function get(url: string, init: RequestInit = {}) {
   const res = await fetch(url, { ...init, cache: 'no-store', signal: AbortSignal.timeout(12000), headers: { 'User-Agent': UA, ...init.headers } })

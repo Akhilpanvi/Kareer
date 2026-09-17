@@ -42,7 +42,7 @@ export default async function AchievementsPage() {
 
   return (
     <>
-      <PageHeader title="Skills & Achievements" description="Everything here counts toward your placement readiness score." />
+      <PageHeader title="Skills & Achievements" description="Everything here counts toward your profile strength." />
       <div className="grid gap-5 lg:grid-cols-2">
         <Card title="Skills" className="lg:col-span-2">
           <Disclosure label="Add skills">
