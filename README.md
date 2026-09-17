@@ -86,9 +86,15 @@ Columns: `regNo,name,email,branch,batch,campus,section,phone,github,leetcode,cod
 
 Students get a read-only coach grounded in their own cached profile (skills, projects, coding stats, profile strength). It never sees email, phone, registration number or other students, and has no tools, so it cannot change records. `GEMINI_API_KEY` stays server-side; each student gets `GEMINI_DAILY_LIMIT` questions/day (default 20) with a 4 s gap, enforced atomically in MongoDB. Without a key the Coach button is hidden.
 
-### Student registration
+### Roster upload and student setup
 
-Students can create an account at `/register` with a university email (`REGISTRATION_DOMAINS`, default `kluniversity.in`). The account stays inactive until the emailed link is confirmed (button click, so link scanners can't consume it). One verification email per address every 5 minutes; unverified sign-ups are removed after 7 days by the daily cron. Set `REGISTRATION=off` to close it. Requires SMTP in production.
+The Placement Cell uploads students (`regNo,name,email,branch,batch` — optional `campus,section,phone`) from **Students → Add students**; rows without a `password` column create accounts with no password. Those students finish setup themselves at `/register`: registration number → details preview (email partly masked) → password → platform usernames and links. Usernames are checked live against each platform and must exist; GitHub, LeetCode and CodeChef are required (`REQUIRED` in `lib/onboarding.ts`), Codeforces optional. A resume link is required, portfolio optional. The first fetch is stored, so the dashboard has data immediately. `REGISTRATION=off` closes setup; admins can undo a setup with **Reset setup** on the student page.
+
+Any signed-in student missing a required username, holding a username that no longer exists, or missing a resume link gets a blocking popup with the same live checks until it is fixed. Live checks are capped at 60/day per account.
+
+### Users panel
+
+**Users** lists every admin and student with role, status (Active / Not registered / Temporary password / Disabled) and last sign-in, filterable by role and status.
 
 ### Passwords
 

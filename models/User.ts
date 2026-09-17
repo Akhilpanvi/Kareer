@@ -14,13 +14,12 @@ const userSchema = new Schema(
     email: { type: String, required: true, unique: true, trim: true, lowercase: true },
     name: { type: String, required: true, trim: true },
     role: { type: String, enum: ['student', 'admin'], default: 'student', index: true },
-    passwordHash: { type: String, required: true, select: false },
+    passwordHash: { type: String, select: false }, // absent = uploaded by admin, not yet registered
     sessionVersion: { type: Number, default: 0 },
     mustChangePassword: { type: Boolean, default: false },
-    emailVerified: Boolean,
-    verifyTokenHash: { type: String, select: false, index: { sparse: true } },
-    verifyExpires: { type: Date, select: false },
-    verifySentAt: Date,
+    registeredAt: Date,
+    checkDay: { type: String, select: false },
+    checkCount: { type: Number, select: false },
     active: { type: Boolean, default: true },
     failedLogins: { type: Number, default: 0 },
     lockedUntil: Date,
@@ -40,7 +39,7 @@ const userSchema = new Schema(
     headline: String,
     bio: String,
     cgpa: Number,
-    links: { linkedin: String, portfolio: String },
+    links: { linkedin: String, portfolio: String, resume: String },
 
     // platform key -> username, e.g. { github: 'octocat' }
     handles: { type: Map, of: String, default: {} },

@@ -6,9 +6,14 @@ import { Avatar, Brand } from '@/components/ui'
 import { Nav } from '@/components/nav'
 import { Assistant } from '@/components/assistant'
 import { assistantEnabled } from '@/lib/assistant'
+import { CompleteProfileModal } from '@/components/onboarding'
+import { platformFields, profileGaps } from '@/lib/onboarding'
+import { PlatformStat } from '@/models/PlatformStat'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const me = await requireUser()
+  const stats = me.role === 'student' ? await PlatformStat.find({ user: me._id }).select('platform status').lean() : []
+  const gaps = me.role === 'student' ? profileGaps(me.handles, me.links?.resume, stats) : []
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[248px_1fr]">
       <aside className="sticky top-0 z-20 border-b border-zinc-200 bg-white/95 backdrop-blur lg:flex lg:h-dvh lg:flex-col lg:border-r lg:border-b-0">
@@ -35,7 +40,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </div>
       </aside>
       <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</main>
-      {me.role === 'student' && assistantEnabled() && <Assistant />}
+      {me.role === 'student' && assistantEnabled() && !gaps.length && <Assistant />}
+      {gaps.length > 0 && <CompleteProfileModal fields={platformFields()} handles={me.handles ?? {}} resume={me.links?.resume ?? ''} portfolio={me.links?.portfolio ?? ''} gaps={gaps} />}
     </div>
   )
 }

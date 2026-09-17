@@ -9,7 +9,7 @@ export async function hashPassword(password: string) {
   return `scrypt$${salt.toString('base64')}$${hash.toString('base64')}`
 }
 
-export async function verifyPassword(password: string, stored?: string) {
+export async function verifyPassword(password: string, stored?: string | null) {
   const [, salt, hash] = stored?.split('$') ?? []
   const expected = hash ? Buffer.from(hash, 'base64') : Buffer.alloc(64)
   const actual = await scryptAsync(password, salt ? Buffer.from(salt, 'base64') : Buffer.alloc(16), 64)

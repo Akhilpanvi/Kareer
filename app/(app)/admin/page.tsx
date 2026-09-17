@@ -23,7 +23,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
 
   const [rows, total, [summary], branches, batches] = await Promise.all([
     User.find(filter).sort(sortOf(params.sort)).skip((page - 1) * PAGE).limit(PAGE)
-      .select({ name: 1, regNo: 1, branch: 1, batch: 1, score: 1, metrics: 1, active: 1, emailVerified: 1, 'projects._id': 1, 'certifications._id': 1 }).lean(),
+      .select({ name: 1, regNo: 1, branch: 1, batch: 1, score: 1, metrics: 1, active: 1, passwordHash: 1, 'projects._id': 1, 'certifications._id': 1 }).lean(),
     User.countDocuments(filter),
     User.aggregate([
       { $match: { role: 'student' } },
@@ -71,7 +71,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                 <Field key={key} label={p.label}><input name={key} maxLength={40} className="input" placeholder="username" autoCapitalize="off" spellCheck={false} /></Field>
               ))}
             </fieldset>
-            <Field label="Password" hint="Leave blank to auto-generate a temporary password.">
+            <Field label="Password (optional)" hint="Leave blank so the student sets up their own account at /register.">
               <input name="password" minLength={10} maxLength={128} className="input max-w-xs" autoComplete="new-password" />
             </Field>
           </ActionForm>
@@ -80,12 +80,12 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         <Disclosure label="Bulk import from CSV">
           <ActionForm action={bulkImport} submit="Import" className="space-y-4">
             <p className="text-xs text-zinc-500">
-              Columns: <code className="rounded bg-zinc-100 px-1 py-0.5">regNo,name,email,branch,batch,campus,section,phone,github,leetcode,codechef,codeforces,password</code>.
-              Matching is by registration number — existing students are updated, new students are created. Leave <code className="rounded bg-zinc-100 px-1 py-0.5">password</code> blank to auto-generate one.
+              Required columns: <code className="rounded bg-zinc-100 px-1 py-0.5">regNo,name,email,branch,batch</code>. Optional: <code className="rounded bg-zinc-100 px-1 py-0.5">campus,section,phone</code>.
+              Matching is by registration number — existing students are updated. New students set up their own account at <span className="font-medium">/register</span> (password, verified usernames, resume).
               {' '}<a href="/sample-students.csv" download className="font-medium text-brand-700 hover:underline">Download a sample CSV</a>.
             </p>
             <Field label="CSV file"><input name="file" type="file" accept=".csv,text/csv" className="input file:mr-3 file:rounded-md file:border-0 file:bg-zinc-100 file:px-3 file:py-1.5 file:text-sm file:font-medium" /></Field>
-            <Field label="or paste rows"><textarea name="csv" rows={4} maxLength={2000000} className="input font-mono text-xs" placeholder="regNo,name,email,branch,batch,campus,section,phone,github,leetcode,codechef,codeforces,password" /></Field>
+            <Field label="or paste rows"><textarea name="csv" rows={4} maxLength={2000000} className="input font-mono text-xs" placeholder="regNo,name,email,branch,batch" /></Field>
           </ActionForm>
         </Disclosure>
       </Card>
@@ -149,7 +149,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                         <Avatar name={s.name} size="size-8" />
                         <span className="min-w-0">
                           <span className="block truncate font-medium text-zinc-900 hover:text-brand-700">{s.name}</span>
-                          <span className="block text-xs text-zinc-500">{s.regNo}{!s.active && <> · <Badge tone="red">Disabled</Badge></>}{s.emailVerified === false && <> · <Badge tone="amber">Unverified</Badge></>}</span>
+                          <span className="block text-xs text-zinc-500">{s.regNo}{!s.active && <> · <Badge tone="red">Disabled</Badge></>}{!s.passwordHash && <> · <Badge tone="amber">Not registered</Badge></>}</span>
                         </span>
                       </Link>
                     </td>

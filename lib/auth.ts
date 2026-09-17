@@ -10,7 +10,7 @@ export const currentUser = cache(async () => {
   const s = await verify((await cookies()).get(cookieName())?.value)
   if (!s) return null
   await db()
-  const u = await User.findById(s.sub).select('name email regNo role active sessionVersion handles mustChangePassword').lean()
+  const u = await User.findById(s.sub).select('name email regNo role active sessionVersion handles links mustChangePassword').lean()
   return u?.active && u.sessionVersion === s.v ? u : null
 })
 

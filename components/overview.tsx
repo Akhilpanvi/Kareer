@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Activity, Award, BadgeCheck, Code2, ExternalLink, Briefcase, FolderGit2, GitBranch, Globe, Sparkles, Star, Target, TrendingUp, Trophy } from 'lucide-react'
+import { Activity, Award, BadgeCheck, Code2, ExternalLink, FileText, Briefcase, FolderGit2, GitBranch, Globe, Sparkles, Star, Target, TrendingUp, Trophy } from 'lucide-react'
 import { Bars, Difficulty, Heatmap, ScoreRing } from './charts'
 import { Avatar, Badge, Card, Empty, Meter, Stat } from './ui'
 import { ago, fmt, monthYear } from '@/lib/format'
@@ -52,6 +52,7 @@ export function Overview({ student, actions, self }: { student: Student; actions
   const links = [
     user.links?.linkedin && { href: user.links.linkedin, label: 'LinkedIn', icon: Briefcase },
     user.links?.portfolio && { href: user.links.portfolio, label: 'Portfolio', icon: Globe },
+    user.links?.resume && { href: user.links.resume, label: 'Resume', icon: FileText },
     ...Object.entries(user.handles ?? {}).filter(([p]) => PLATFORMS[p]).map(([p, h]) => ({ href: PLATFORMS[p].url(h), label: PLATFORMS[p].label, icon: ExternalLink })),
   ].filter(Boolean) as { href: string; label: string; icon: typeof Globe }[]
   const add = (href: string, text: string) => (self ? <Link href={href} prefetch={false} className="text-xs font-medium text-brand-700 hover:underline">{text}</Link> : undefined)

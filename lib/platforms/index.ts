@@ -7,7 +7,7 @@ import { github } from './github'
 import { leetcode } from './leetcode'
 import { codechef } from './codechef'
 import { codeforces } from './codeforces'
-import type { Platform } from './types'
+import type { Fetched, Platform } from './types'
 
 // Add a platform: write a fetcher and register it here.
 export const PLATFORMS: Record<string, Platform> = { github, leetcode, codechef, codeforces }
@@ -16,6 +16,25 @@ export const PLATFORM_KEYS = Object.keys(PLATFORMS)
 export const TTL = 12 * 3600_000
 export const COOLDOWN = 10 * 60_000
 
+const saved = (r: Fetched, now: Date) => ({
+  $set: { status: 'ok', data: r.data, metrics: r.metrics, fetchedAt: now, checkedAt: now, error: null },
+  $push: { history: { $each: [{ at: now, value: r.value }], $slice: -90 } },
+})
+
+/** Fetch a username once and store the result as that user's platform record. Throws if the platform can't be reached. */
+export async function verifyAndStore(user: Types.ObjectId | string, platform: string, handle: string) {
+  await db()
+  const r = await PLATFORMS[platform].fetch(handle)
+  const now = new Date()
+  const ok = r && saved(r, now)
+  await PlatformStat.updateOne(
+    { user, platform },
+    ok ? { $set: { ...ok.$set, handle }, $push: ok.$push } : { $set: { handle, status: 'not_found', data: null, metrics: null, history: [], checkedAt: now, error: null } },
+    { upsert: true },
+  )
+  return r
+}
+
 async function refreshStat(stat: { _id: Types.ObjectId; platform: string; handle: string }) {
   const now = new Date()
   try {
@@ -23,10 +42,7 @@ async function refreshStat(stat: { _id: Types.ObjectId; platform: string; handle
     await PlatformStat.updateOne(
       { _id: stat._id },
       r
-        ? {
-            $set: { status: 'ok', data: r.data, metrics: r.metrics, fetchedAt: now, checkedAt: now, error: null },
-            $push: { history: { $each: [{ at: now, value: r.value }], $slice: -90 } },
-          }
+        ? saved(r, now)
         : { $set: { status: 'not_found', data: null, metrics: null, checkedAt: now, error: null } },
     )
   } catch (e) {

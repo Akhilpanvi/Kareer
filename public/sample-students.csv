@@ -1,4 +1,4 @@
-regNo,name,email,branch,batch,campus,section,phone,github,leetcode,codechef,codeforces,password
-2300030001,Demo Student,demo.student@kluniversity.in,CSE,2027,VJA,S1,9876543210,octocat,klu2300033153,gennady.korotkevich,tourist,
-2300030002,Aarav Reddy,aarav.reddy@kluniversity.in,CSE,2027,VJA,S2,,,,,,
-2300040003,Diya Sharma,diya.sharma@kluniversity.in,ECE,2027,HYD,S1,,,,,,
+regNo,name,email,branch,batch
+2300030001,Aarav Reddy,2300030001@kluniversity.in,CSE,2027
+2300030002,Diya Sharma,2300030002@kluniversity.in,ECE,2027
+2300040003,Rahul Varma,2300040003@kluniversity.in,CSE,2026

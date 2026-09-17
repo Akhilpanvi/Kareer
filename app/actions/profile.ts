@@ -35,7 +35,7 @@ export async function updateProfile(_: State, fd: FormData) {
           bio: str(fd, 'bio', 1000),
           phone: str(fd, 'phone', 20),
           cgpa: cgpa ? +cgpa : null,
-          links: { linkedin: link(fd, 'linkedin'), portfolio: link(fd, 'portfolio') },
+          links: { linkedin: link(fd, 'linkedin'), portfolio: link(fd, 'portfolio'), resume: link(fd, 'resume') },
           handles,
         },
       },

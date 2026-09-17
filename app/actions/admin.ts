@@ -29,6 +29,17 @@ export async function resetPassword(id: string): Promise<State> {
   return r.modifiedCount ? { ok: 'Temporary password issued. It will not be shown again.', secret: password } : { error: 'Student not found.' }
 }
 
+export async function resetRegistration(id: string): Promise<State> {
+  await requireAdmin()
+  if (!valid(id)) return { error: 'Invalid student.' }
+  const r = await User.updateOne(
+    { _id: id, role: 'student' },
+    { $unset: { passwordHash: 1, registeredAt: 1, lockedUntil: 1 }, $set: { failedLogins: 0, mustChangePassword: false }, $inc: { sessionVersion: 1 } },
+  )
+  touched(id)
+  return r.matchedCount ? { ok: 'Account setup reset. The student can set it up again at /register.' } : { error: 'Student not found.' }
+}
+
 export async function setActive(id: string, active: boolean): Promise<State> {
   await requireAdmin()
   if (!valid(id)) return { error: 'Invalid student.' }
@@ -78,15 +89,12 @@ export async function createStudent(_: State, fd: FormData) {
   return attempt(async () => {
     await requireAdmin()
     const fields = studentFields(fd)
-    const given = str(fd, 'password', 128)
-    const password = given || tempPassword()
-    if (given) {
-      const issue = passwordIssue(password)
-      if (issue) throw new Invalid(issue)
-    }
+    const password = str(fd, 'password', 128)
+    const issue = password && passwordIssue(password)
+    if (issue) throw new Invalid(issue)
     let user
     try {
-      user = await User.create({ ...fields, role: 'student', mustChangePassword: true, passwordHash: await hashPassword(password) })
+      user = await User.create({ ...fields, role: 'student', ...(password && { mustChangePassword: true, passwordHash: await hashPassword(password) }) })
     } catch (e) {
       if (duplicate(e)) throw new Invalid('A student with this registration number or email already exists.')
       throw e
@@ -94,7 +102,7 @@ export async function createStudent(_: State, fd: FormData) {
     await syncHandles(user._id, fields.handles)
     after(() => refreshUser(user._id))
     touched()
-    return { ok: 'Student added.', ...(given ? {} : { secret: password }) }
+    return { ok: password ? 'Student added. They must change this password at first sign-in.' : 'Student added. They can now set up their account at /register.' }
   })
 }
 
@@ -160,13 +168,12 @@ export async function bulkImport(_: State, fd: FormData) {
     const list = [...byReg.values()]
     if (!list.length) throw new Invalid(`No valid rows. ${skipped} skipped — each row needs regNo, name and a valid email.`)
 
-    // One read for existing students; hash new passwords in parallel batches
+    // One read for existing students; new students without a password set up their account at /register
     const existing = new Set((await User.find({ regNo: { $in: list.map(r => r.regNo) } }).select('regNo').lean()).map(u => u.regNo))
-    const fresh = list.filter(r => !existing.has(r.regNo))
-    for (let i = 0; i < fresh.length; i += 32)
-      await Promise.all(fresh.slice(i, i + 32).map(async r => {
-        r.password ??= tempPassword()
-        r.fields.passwordHash = await hashPassword(r.password)
+    const withPassword = list.filter(r => !existing.has(r.regNo) && r.password)
+    for (let i = 0; i < withPassword.length; i += 32)
+      await Promise.all(withPassword.slice(i, i + 32).map(async r => {
+        r.fields.passwordHash = await hashPassword(r.password!)
         r.fields.mustChangePassword = true
       }))
 
@@ -193,8 +200,7 @@ export async function bulkImport(_: State, fd: FormData) {
     touched()
     const created = saved.filter(r => !existing.has(r.regNo))
     return {
-      ok: `${created.length} created, ${saved.length - created.length} updated${skipped + failed.size ? `, ${skipped + failed.size} skipped` : ''}.`,
-      rows: created.map(r => `${r.regNo},${r.email},${r.password}`),
+      ok: `${created.length} created, ${saved.length - created.length} updated${skipped + failed.size ? `, ${skipped + failed.size} skipped` : ''}. New students set up their account at /register.`,
     }
   })
 }

@@ -19,19 +19,22 @@ function getKey() {
 
 export const cookieName = () => (process.env.NODE_ENV === 'production' ? COOKIE : COOKIE_DEV)
 
-export async function sign(s: Omit<Session, 'exp'>) {
-  const body = b64(enc.encode(JSON.stringify({ ...s, exp: Math.floor(Date.now() / 1000) + MAX_AGE })))
+export async function seal<T extends object>(payload: T, ttlSec: number) {
+  const body = b64(enc.encode(JSON.stringify({ ...payload, exp: Math.floor(Date.now() / 1000) + ttlSec })))
   return `${body}.${b64(await crypto.subtle.sign('HMAC', await getKey(), enc.encode(body)))}`
 }
 
-export async function verify(token?: string): Promise<Session | null> {
+export async function unseal<T>(token?: string): Promise<(T & { exp: number }) | null> {
   const [body, sig] = token?.split('.') ?? []
   if (!body || !sig) return null
   try {
     if (!(await crypto.subtle.verify('HMAC', await getKey(), unb64(sig), enc.encode(body)))) return null
-    const s = JSON.parse(new TextDecoder().decode(unb64(body))) as Session
+    const s = JSON.parse(new TextDecoder().decode(unb64(body))) as T & { exp: number }
     return s.exp > Date.now() / 1000 ? s : null
   } catch {
     return null
   }
 }
+
+export const sign = (s: Omit<Session, 'exp'>) => seal(s, MAX_AGE)
+export const verify = (token?: string) => unseal<Session>(token).then(s => (s?.sub && s.role ? s : null))
