@@ -1,6 +1,10 @@
-export type State = { ok?: string; error?: string; secret?: string } | null
+export type State = { ok?: string; error?: string; secret?: string; rows?: string[] } | null
 
 export class Invalid extends Error {}
+
+export const HANDLE = /^[A-Za-z0-9_.-]{1,40}$/
+export const REGNO = /^[A-Za-z0-9-]{3,20}$/
+export const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export const str = (fd: FormData, key: string, max = 200) => String(fd.get(key) ?? '').trim().slice(0, max)
 

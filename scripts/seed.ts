@@ -9,6 +9,7 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import mongoose from 'mongoose'
 import { db } from '../lib/db'
+import { csvCell, parseCsv } from '../lib/csv'
 import { hashPassword, passwordIssue, tempPassword } from '../lib/password'
 import { PLATFORM_KEYS, syncHandles } from '../lib/platforms'
 import { User } from '../models/User'
@@ -17,27 +18,7 @@ const args = process.argv.slice(2)
 const file = args.find(a => !a.startsWith('--')) ?? 'data/students.csv'
 const reset = args.includes('--reset-passwords')
 
-function parseCsv(text: string) {
-  const rows: string[][] = [[]]
-  let cell = '', quoted = false
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i]
-    if (quoted) {
-      if (c === '"' && text[i + 1] === '"') cell += text[++i]
-      else if (c === '"') quoted = false
-      else cell += c
-    } else if (c === '"') quoted = true
-    else if (c === ',') rows.at(-1)!.push(cell.trim()), (cell = '')
-    else if (c === '\n') rows.at(-1)!.push(cell.trim()), rows.push([]), (cell = '')
-    else if (c !== '\r') cell += c
-  }
-  rows.at(-1)!.push(cell.trim())
-  const [head, ...body] = rows.filter(r => r.some(Boolean))
-  return body.map(r => Object.fromEntries(head.map((h, i) => [h.trim(), r[i] ?? ''])))
-}
-
 const handle = (v = '') => v.replace(/^https?:\/\/[^/]+\/(u\/|users\/|profile\/)?/i, '').split(/[/?]/)[0].trim()
-const csvCell = (v: string) => `"${v.replace(/"/g, '""')}"`
 
 await db()
 const issued: string[][] = []

@@ -1,22 +1,25 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Award, BarChart3, LayoutDashboard, UserRound, Users } from 'lucide-react'
+import { Award, BarChart3, LayoutDashboard, ShieldCheck, UserRound, Users } from 'lucide-react'
 
 const STUDENT = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/profile', label: 'Profile', icon: UserRound },
-  { href: '/achievements', label: 'Skills & Achievements', icon: Award },
-  { href: '/stats', label: 'Platform Statistics', icon: BarChart3 },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, match: (p: string) => p === '/dashboard' },
+  { href: '/profile', label: 'Profile', icon: UserRound, match: (p: string) => p === '/profile' },
+  { href: '/achievements', label: 'Skills & Achievements', icon: Award, match: (p: string) => p === '/achievements' },
+  { href: '/stats', label: 'Platform Statistics', icon: BarChart3, match: (p: string) => p === '/stats' },
 ]
-const ADMIN = [{ href: '/admin', label: 'Students', icon: Users }]
+const ADMIN = [
+  { href: '/admin', label: 'Students', icon: Users, match: (p: string) => p === '/admin' || p.startsWith('/admin/students') },
+  { href: '/admin/team', label: 'Placement Cell Team', icon: ShieldCheck, match: (p: string) => p.startsWith('/admin/team') },
+]
 
 export function Nav({ admin }: { admin: boolean }) {
   const path = usePathname()
   return (
     <nav className="flex gap-1 overflow-x-auto lg:flex-col">
-      {(admin ? ADMIN : STUDENT).map(({ href, label, icon: Icon }) => {
-        const active = path === href || path.startsWith(href + '/')
+      {(admin ? ADMIN : STUDENT).map(({ href, label, icon: Icon, match }) => {
+        const active = match(path)
         return (
           <Link
             key={href}

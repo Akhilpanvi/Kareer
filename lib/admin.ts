@@ -11,7 +11,7 @@ export const SORTS = {
   name: { name: 1 },
 } as const
 
-export type Params = { q?: string; branch?: string; batch?: string; sort?: string; page?: string }
+export type Params = { q?: string; branch?: string; batch?: string; sort?: string; page?: string; msg?: string }
 
 export function filterOf(p: Params) {
   const f: QueryFilter<UserDoc> = { role: 'student' }

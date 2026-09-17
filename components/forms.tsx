@@ -6,9 +6,13 @@ import type { State } from '@/lib/form'
 export function Notice({ state }: { state: State }) {
   if (!state?.ok && !state?.error) return null
   return (
-    <p role="status" className={`text-sm ${state.error ? 'text-red-600' : 'text-emerald-700'}`}>
-      {state.error ?? state.ok}
-    </p>
+    <div className="space-y-2">
+      <p role="status" className={`text-sm ${state.error ? 'text-red-600' : 'text-emerald-700'}`}>
+        {state.error ?? state.ok}
+      </p>
+      {state.secret && <Secret value={state.secret} />}
+      {!!state.rows?.length && <CredentialsBlock rows={state.rows} />}
+    </div>
   )
 }
 
@@ -29,8 +33,8 @@ export function ActionForm({ action, submit = 'Save', reset, className = 'space-
   return (
     <form ref={ref} className={className} onSubmit={e => (e.preventDefault(), start(() => run(new FormData(e.currentTarget))))}>
       {children}
-      <div className="flex flex-wrap items-center gap-3">
-        <button className="btn-primary" disabled={pending}>{pending ? 'Saving…' : submit}</button>
+      <div className="flex flex-wrap items-start gap-3">
+        <button className="btn-primary shrink-0" disabled={pending}>{pending ? 'Saving…' : submit}</button>
         <Notice state={state} />
       </div>
     </form>
@@ -52,7 +56,6 @@ export function ActionButton({ action, children, className = 'btn-outline', conf
         {children}
       </button>
       <Notice state={state} />
-      {state?.secret && <Secret value={state.secret} />}
     </div>
   )
 }
@@ -68,5 +71,21 @@ function Secret({ value }: { value: string }) {
       {value}
       {copied ? <Check className="size-4 text-emerald-600" /> : <Copy className="size-4 text-zinc-400" />}
     </button>
+  )
+}
+
+function CredentialsBlock({ rows }: { rows: string[] }) {
+  const [copied, setCopied] = useState(false)
+  const text = ['regNo,email,password', ...rows].join('\n')
+  return (
+    <div className="w-full max-w-md space-y-1.5">
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-zinc-500">New credentials — shown once, copy and distribute securely.</p>
+        <button type="button" onClick={() => navigator.clipboard.writeText(text).then(() => setCopied(true))} className="flex shrink-0 items-center gap-1 text-xs font-medium text-brand-700 hover:underline">
+          {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}Copy all
+        </button>
+      </div>
+      <textarea readOnly value={text} rows={Math.min(8, rows.length + 1)} onFocus={e => e.currentTarget.select()} className="input font-mono text-xs" />
+    </div>
   )
 }

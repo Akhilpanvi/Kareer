@@ -86,6 +86,15 @@ export function Field({ label, children, hint }: { label: string; children: Reac
   )
 }
 
+export function Disclosure({ children, label, defaultOpen }: { children: React.ReactNode; label: string; defaultOpen?: boolean }) {
+  return (
+    <details open={defaultOpen} className="group mb-5 rounded-lg border border-zinc-200 bg-zinc-50/60 open:bg-white last:mb-0">
+      <summary className="cursor-pointer list-none px-4 py-2.5 text-sm font-medium text-brand-700 marker:hidden">+ {label}</summary>
+      <div className="border-t border-zinc-200 p-4">{children}</div>
+    </details>
+  )
+}
+
 export function Brand({ compact }: { compact?: boolean }) {
   return (
     <span className="flex items-center gap-2.5">
