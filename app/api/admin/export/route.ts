@@ -9,7 +9,7 @@ const cell = (v: unknown) => `"${String(v ?? '').replace(/^[=+\-@\t\r]/, "'$&").
 
 export async function GET(req: NextRequest) {
   const me = await currentUser()
-  if (me?.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if (me?.role !== 'admin' || me.mustChangePassword) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   const p = Object.fromEntries(req.nextUrl.searchParams)
   const rows = await User.find(filterOf(p)).sort(sortOf(p.sort)).limit(10000)
     .select({ regNo: 1, name: 1, email: 1, branch: 1, batch: 1, campus: 1, section: 1, cgpa: 1, score: 1, metrics: 1, handles: 1, 'projects._id': 1, 'certifications._id': 1, 'skills.name': 1 }).lean()

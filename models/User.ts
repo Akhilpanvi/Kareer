@@ -16,6 +16,7 @@ const userSchema = new Schema(
     role: { type: String, enum: ['student', 'admin'], default: 'student', index: true },
     passwordHash: { type: String, required: true, select: false },
     sessionVersion: { type: Number, default: 0 },
+    mustChangePassword: { type: Boolean, default: false },
     active: { type: Boolean, default: true },
     failedLogins: { type: Number, default: 0 },
     lockedUntil: Date,

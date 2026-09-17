@@ -27,7 +27,7 @@ const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase()
 if (adminEmail && !(await User.exists({ email: adminEmail }))) {
   const password = process.env.ADMIN_PASSWORD || tempPassword()
   if (passwordIssue(password)) throw new Error(`ADMIN_PASSWORD: ${passwordIssue(password)}`)
-  await User.create({ regNo: 'ADMIN', email: adminEmail, name: 'Placement Cell', role: 'admin', passwordHash: await hashPassword(password) })
+  await User.create({ regNo: 'ADMIN', email: adminEmail, name: 'Placement Cell', role: 'admin', mustChangePassword: !process.env.ADMIN_PASSWORD, passwordHash: await hashPassword(password) })
   issued.push(['ADMIN', adminEmail, process.env.ADMIN_PASSWORD ? '(from ADMIN_PASSWORD)' : password])
   console.log(`created admin ${adminEmail}`)
 }
@@ -51,7 +51,7 @@ for (const row of parseCsv(readFileSync(file, 'utf8'))) {
   const user = await User.findOneAndUpdate(
     { regNo },
     {
-      $set: { ...fields, ...(Object.keys(handles).length && { handles }), ...(password && { passwordHash: await hashPassword(password) }) },
+      $set: { ...fields, ...(Object.keys(handles).length && { handles }), ...(password && { passwordHash: await hashPassword(password), mustChangePassword: true }) },
       ...(existing && password && { $inc: { sessionVersion: 1 } }),
       $setOnInsert: { role: 'student' },
     },

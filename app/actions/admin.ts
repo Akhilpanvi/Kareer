@@ -24,7 +24,7 @@ export async function resetPassword(id: string): Promise<State> {
   const password = tempPassword()
   const r = await User.updateOne(
     { _id: id, role: 'student' },
-    { $set: { passwordHash: await hashPassword(password), failedLogins: 0 }, $unset: { lockedUntil: 1 }, $inc: { sessionVersion: 1 } },
+    { $set: { passwordHash: await hashPassword(password), failedLogins: 0, mustChangePassword: true }, $unset: { lockedUntil: 1 }, $inc: { sessionVersion: 1 } },
   )
   return r.modifiedCount ? { ok: 'Temporary password issued. It will not be shown again.', secret: password } : { error: 'Student not found.' }
 }
@@ -86,7 +86,7 @@ export async function createStudent(_: State, fd: FormData) {
     }
     let user
     try {
-      user = await User.create({ ...fields, role: 'student', passwordHash: await hashPassword(password) })
+      user = await User.create({ ...fields, role: 'student', mustChangePassword: true, passwordHash: await hashPassword(password) })
     } catch (e) {
       if (duplicate(e)) throw new Invalid('A student with this registration number or email already exists.')
       throw e
@@ -167,6 +167,7 @@ export async function bulkImport(_: State, fd: FormData) {
       await Promise.all(fresh.slice(i, i + 32).map(async r => {
         r.password ??= tempPassword()
         r.fields.passwordHash = await hashPassword(r.password)
+        r.fields.mustChangePassword = true
       }))
 
     // One bulk write; rows that conflict (e.g. an email used by another student) are reported as skipped
@@ -227,7 +228,7 @@ export async function createAdmin(_: State, fd: FormData) {
     if (!email || !EMAIL.test(email)) throw new Invalid('Enter a valid email address.')
     const password = tempPassword()
     try {
-      await User.create({ regNo: `ADMIN-${Date.now().toString(36).toUpperCase()}`, email, name, role: 'admin', passwordHash: await hashPassword(password) })
+      await User.create({ regNo: `ADMIN-${Date.now().toString(36).toUpperCase()}`, email, name, role: 'admin', mustChangePassword: true, passwordHash: await hashPassword(password) })
     } catch (e) {
       if (duplicate(e)) throw new Invalid('An account with this email already exists.')
       throw e
@@ -252,7 +253,7 @@ export async function resetAdminPassword(id: string): Promise<State> {
   const password = tempPassword()
   const r = await User.updateOne(
     { _id: id, role: 'admin' },
-    { $set: { passwordHash: await hashPassword(password), failedLogins: 0 }, $unset: { lockedUntil: 1 }, $inc: { sessionVersion: 1 } },
+    { $set: { passwordHash: await hashPassword(password), failedLogins: 0, mustChangePassword: true }, $unset: { lockedUntil: 1 }, $inc: { sessionVersion: 1 } },
   )
   return r.modifiedCount ? { ok: 'Temporary password issued. It will not be shown again.', secret: password } : { error: 'Account not found.' }
 }

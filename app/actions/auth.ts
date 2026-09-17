@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { after } from 'next/server'
 import { db } from '@/lib/db'
-import { endSession, requireAdmin, requireUser, startSession } from '@/lib/auth'
+import { currentUser, endSession, requireAdmin, startSession } from '@/lib/auth'
 import { hashPassword, passwordIssue, verifyPassword } from '@/lib/password'
 import { EMAIL, str, type State } from '@/lib/form'
 import { appUrl, resetEmail, resetEnabled, sendMail } from '@/lib/mail'
@@ -23,11 +23,11 @@ export async function login(_: State, fd: FormData): Promise<State> {
   const password = String(fd.get('password') ?? '').slice(0, 128)
   if (!id || !password) return { error: 'Enter your registration number or email and password.' }
 
-  let role: string
+  let to: string
   try {
     await db()
     const user = await User.findOne(id.includes('@') ? { email: id.toLowerCase() } : { regNo: id.toUpperCase() })
-      .select('+passwordHash role active sessionVersion failedLogins lockedUntil')
+      .select('+passwordHash role active sessionVersion failedLogins lockedUntil mustChangePassword')
     if (user?.lockedUntil && user.lockedUntil > new Date()) return { error: 'Too many failed attempts. Try again in 15 minutes.' }
 
     const valid = await verifyPassword(password, user?.passwordHash)
@@ -44,11 +44,11 @@ export async function login(_: State, fd: FormData): Promise<State> {
 
     await User.updateOne({ _id: user._id }, { $set: { failedLogins: 0, lastLoginAt: new Date() }, $unset: { lockedUntil: 1 } })
     await startSession({ _id: user._id, role: user.role as 'student' | 'admin', sessionVersion: user.sessionVersion })
-    role = user.role
+    to = user.mustChangePassword ? '/change-password' : user.role === 'admin' ? '/admin' : '/dashboard'
   } catch (e) {
     return unavailable('login', e)
   }
-  redirect(role === 'admin' ? '/admin' : '/dashboard')
+  redirect(to)
 }
 
 export async function logout() {
@@ -57,7 +57,8 @@ export async function logout() {
 }
 
 export async function changePassword(_: State, fd: FormData): Promise<State> {
-  const me = await requireUser()
+  const me = await currentUser()
+  if (!me) redirect('/login')
   const [current, next, confirm] = ['current', 'next', 'confirm'].map(k => String(fd.get(k) ?? ''))
   const issue = passwordIssue(next)
   if (issue) return { error: issue }
@@ -65,7 +66,9 @@ export async function changePassword(_: State, fd: FormData): Promise<State> {
 
   const user = await User.findById(me._id).select('+passwordHash role sessionVersion')
   if (!user || !(await verifyPassword(current, user.passwordHash))) return { error: 'Current password is incorrect.' }
+  if (current === next) return { error: 'Choose a password different from your current one.' }
   user.passwordHash = await hashPassword(next)
+  user.mustChangePassword = false
   user.sessionVersion += 1
   await user.save()
   await startSession({ _id: user._id, role: user.role as 'student' | 'admin', sessionVersion: user.sessionVersion })
@@ -112,7 +115,7 @@ export async function resetWithToken(_: State, fd: FormData): Promise<State> {
   const user = await User.findOneAndUpdate(
     { resetTokenHash: sha256(token), resetTokenExpires: { $gt: new Date() } },
     {
-      $set: { passwordHash: await hashPassword(next), failedLogins: 0 },
+      $set: { passwordHash: await hashPassword(next), failedLogins: 0, mustChangePassword: false },
       $unset: { resetTokenHash: 1, resetTokenExpires: 1, lockedUntil: 1 },
       $inc: { sessionVersion: 1 },
     },
@@ -145,4 +148,13 @@ export async function updateAccount(_: State, fd: FormData): Promise<State> {
   }
   revalidatePath('/', 'layout')
   return { ok: emailChanged ? `Saved. Sign in with ${email} from now on.` : 'Saved.' }
+}
+
+/** Forced first sign-in (or after an issued temporary password): set a password, then continue. */
+export async function setFirstPassword(_: State, fd: FormData): Promise<State> {
+  const me = await currentUser()
+  if (!me) redirect('/login')
+  const result = await changePassword(null, fd)
+  if (result?.error) return result
+  redirect(me.role === 'admin' ? '/admin' : '/dashboard')
 }

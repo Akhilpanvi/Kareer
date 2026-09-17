@@ -19,7 +19,7 @@ await db()
 const password = tempPassword()
 const user = await User.findOneAndUpdate(
   id.includes('@') ? { email: id.toLowerCase() } : { regNo: id.toUpperCase() },
-  { $set: { passwordHash: await hashPassword(password), failedLogins: 0, active: true }, $unset: { lockedUntil: 1 }, $inc: { sessionVersion: 1 } },
+  { $set: { passwordHash: await hashPassword(password), failedLogins: 0, active: true, mustChangePassword: true }, $unset: { lockedUntil: 1 }, $inc: { sessionVersion: 1 } },
   { returnDocument: 'after' },
 ).select('email role').lean()
 

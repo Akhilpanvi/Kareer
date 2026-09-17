@@ -10,13 +10,14 @@ export const currentUser = cache(async () => {
   const s = await verify((await cookies()).get(cookieName())?.value)
   if (!s) return null
   await db()
-  const u = await User.findById(s.sub).select('name email regNo role active sessionVersion handles').lean()
+  const u = await User.findById(s.sub).select('name email regNo role active sessionVersion handles mustChangePassword').lean()
   return u?.active && u.sessionVersion === s.v ? u : null
 })
 
 export async function requireUser() {
   const u = await currentUser()
   if (!u) redirect('/login')
+  if (u.mustChangePassword) redirect('/change-password')
   return u
 }
 
