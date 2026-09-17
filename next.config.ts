@@ -10,7 +10,7 @@ const security = [
 
 const config: NextConfig = {
   poweredByHeader: false,
-  serverExternalPackages: ['mongoose'],
+  serverExternalPackages: ['mongoose', 'nodemailer'],
   experimental: { serverActions: { allowedOrigins: ['kareer.klef.me'], bodySizeLimit: '4mb' } },
   headers: async () => [{ source: '/:path*', headers: security }],
 }

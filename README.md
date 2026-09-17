@@ -72,8 +72,7 @@ npm run dev
 | `CRON_SECRET` | random string; Vercel sends it to the cron route |
 | `GITHUB_TOKEN` | classic token, no scopes — enables contribution calendar, 5000 req/h |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | seed-only; first admin account |
-| `RESEND_API_KEY` | enables "Forgot password?" emails (see below); without it the link is hidden in production |
-| `MAIL_FROM` | default `Kareers <no-reply@kareer.klef.me>` |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | enables "Forgot password?" emails (see below); without them the link is hidden in production |
 | `APP_URL` | base URL used in reset links, default `https://kareer.klef.me` |
 
 ### Seeding students
@@ -89,16 +88,23 @@ Columns: `regNo,name,email,branch,batch,campus,section,phone,github,leetcode,cod
 - Locked out of every admin account? From a trusted machine with `MONGODB_URI`: `npm run reset-password -- <email|regNo>`.
 - **Forgot password?** emails a single-use link (30 min expiry, one request per account every 5 min, same response whether or not the account exists).
 
-#### Email setup (Resend + Cloudflare)
+#### Email setup (Gmail SMTP)
 
-Cloudflare Email Routing only receives mail, so sending goes through [Resend](https://resend.com) (free: 3,000 emails/month).
+```
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=passkey.crt@gmail.com
+SMTP_PASSWORD=<Google App Password>
+SMTP_FROM="Kareer OTP <otp@kareer.klef.me>"
+```
 
-1. Resend → Domains → add `kareer.klef.me`.
-2. Cloudflare → `klef.me` → DNS: add the records Resend shows (MX + TXT for `send.kareer`, DKIM TXT `resend._domainkey.kareer`). Set them to **DNS only** (grey cloud). Nothing changes at Namecheap as long as it points `klef.me` at Cloudflare's nameservers.
-3. Optional: TXT `_dmarc.kareer` → `v=DMARC1; p=none;`
-4. Once Resend shows *Verified*, create an API key (sending access) and set `RESEND_API_KEY` in Vercel, then redeploy.
+1. On the Google account: turn on 2-Step Verification, then create an **App Password** (Security → App passwords). Use it as `SMTP_PASSWORD`; the normal account password is rejected.
+2. To send as `otp@kareer.klef.me`, add it in Gmail → Settings → Accounts → **Send mail as** and confirm it (the address must receive mail — e.g. Cloudflare Email Routing forwarding `otp@kareer.klef.me` to the Gmail inbox). Until then Gmail rewrites the sender to `passkey.crt@gmail.com`.
+3. For deliverability, in Cloudflare DNS add TXT on `kareer`: `v=spf1 include:_spf.google.com ~all`. (Gmail can't DKIM-sign a custom domain on a free account, so some messages may land in spam.)
+4. Set the variables in Vercel and redeploy. Gmail allows about 500 emails/day.
 
-In development without a key, reset emails are printed to the server console.
+In development without SMTP settings, reset emails are printed to the server console.
 
 ## Deploy (Vercel)
 

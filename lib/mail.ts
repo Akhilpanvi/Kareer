@@ -1,23 +1,29 @@
 import 'server-only'
+import nodemailer, { type Transporter } from 'nodemailer'
 
-// Transactional email via Resend's HTTP API (free tier: 3,000/month). Domain DNS lives in Cloudflare.
-export const mailEnabled = () => !!process.env.RESEND_API_KEY
+// Transactional email over SMTP (e.g. Gmail with an App Password).
+export const mailEnabled = () => !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD)
 export const resetEnabled = () => mailEnabled() || process.env.NODE_ENV !== 'production'
 export const appUrl = () => (process.env.APP_URL ?? 'https://kareer.klef.me').replace(/\/$/, '')
 
+const g = globalThis as unknown as { smtp?: Transporter }
+
 export async function sendMail({ to, subject, text, html }: { to: string; subject: string; text: string; html: string }) {
-  const key = process.env.RESEND_API_KEY
-  if (!key) {
-    if (process.env.NODE_ENV === 'production') throw new Error('RESEND_API_KEY is not set')
+  if (!mailEnabled()) {
+    if (process.env.NODE_ENV === 'production') throw new Error('SMTP is not configured')
     return console.log(`[mail:dev] to=${to} subject="${subject}"\n${text}`)
   }
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: process.env.MAIL_FROM ?? 'Kareers <no-reply@kareer.klef.me>', to, subject, text, html }),
-    signal: AbortSignal.timeout(10_000),
+  g.smtp ??= nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT ?? 587),
+    secure: process.env.SMTP_SECURE === 'true', // false = STARTTLS on 587
+    requireTLS: process.env.SMTP_SECURE !== 'true',
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD },
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 15_000,
   })
-  if (!res.ok) throw new Error(`Resend responded ${res.status}: ${(await res.text()).slice(0, 200)}`)
+  await g.smtp.sendMail({ from: process.env.SMTP_FROM ?? `Kareer <${process.env.SMTP_USER}>`, to, subject, text, html })
 }
 
 const esc = (s: string) => s.replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`)
