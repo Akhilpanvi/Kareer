@@ -4,6 +4,7 @@ import { requireUser } from '@/lib/auth'
 import { loadStudent } from '@/lib/data'
 import { PLATFORMS } from '@/lib/platforms'
 import { updateProfile } from '@/app/actions/profile'
+import { updateAccount } from '@/app/actions/auth'
 import { ActionForm } from '@/components/forms'
 import { ChangePassword } from '@/components/change-password'
 import { Card, Field, PageHeader } from '@/components/ui'
@@ -76,14 +77,12 @@ function AdminProfile({ name, email }: { name: string; email: string }) {
       <PageHeader title="Profile" description="Your Placement Cell account." />
       <div className="grid max-w-4xl gap-5 md:grid-cols-2">
         <Card title="Account">
-          <dl className="space-y-3 text-sm">
-            {[['Name', name], ['Email', email], ['Role', 'Placement Cell admin']].map(([k, v]) => (
-              <div key={k} className="flex justify-between gap-4">
-                <dt className="text-zinc-500">{k}</dt>
-                <dd className="truncate text-right font-medium">{v}</dd>
-              </div>
-            ))}
-          </dl>
+          <ActionForm action={updateAccount} submit="Save changes">
+            <Field label="Name"><input name="name" required maxLength={120} defaultValue={name} className="input" /></Field>
+            <Field label="Email" hint="Used to sign in and to receive password reset links."><input name="email" type="email" required maxLength={120} defaultValue={email} autoComplete="email" className="input" /></Field>
+            <Field label="Current password" hint="Required only when changing your email."><input name="current" type="password" maxLength={128} autoComplete="current-password" className="input" /></Field>
+            <p className="text-xs text-zinc-500">Role: Placement Cell admin</p>
+          </ActionForm>
         </Card>
         <ChangePassword />
       </div>

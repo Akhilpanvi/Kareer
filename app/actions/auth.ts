@@ -1,11 +1,12 @@
 'use server'
 import { createHash, randomBytes } from 'node:crypto'
+import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { after } from 'next/server'
 import { db } from '@/lib/db'
-import { endSession, requireUser, startSession } from '@/lib/auth'
+import { endSession, requireAdmin, requireUser, startSession } from '@/lib/auth'
 import { hashPassword, passwordIssue, verifyPassword } from '@/lib/password'
-import { str, type State } from '@/lib/form'
+import { EMAIL, str, type State } from '@/lib/form'
 import { appUrl, resetEmail, resetEnabled, sendMail } from '@/lib/mail'
 import { User } from '@/models/User'
 
@@ -118,4 +119,30 @@ export async function resetWithToken(_: State, fd: FormData): Promise<State> {
   ).select('_id').lean()
   if (!token || !user) return { error: 'This reset link is invalid, already used, or expired. Request a new one.' }
   redirect('/login?reset=1')
+}
+
+/** Admin edits their own name and email. Changing the email (the sign-in ID) needs the current password. */
+export async function updateAccount(_: State, fd: FormData): Promise<State> {
+  const me = await requireAdmin()
+  const name = str(fd, 'name', 120)
+  const email = str(fd, 'email', 120).toLowerCase()
+  if (!name) return { error: 'Name is required.' }
+  if (!EMAIL.test(email)) return { error: 'Enter a valid email address.' }
+
+  const user = await User.findById(me._id).select('+passwordHash email')
+  if (!user) return { error: 'Account not found.' }
+  const emailChanged = email !== user.email
+  if (emailChanged && !(await verifyPassword(String(fd.get('current') ?? ''), user.passwordHash)))
+    return { error: 'Enter your current password to change your email.' }
+
+  user.name = name
+  user.email = email
+  try {
+    await user.save()
+  } catch (e) {
+    if ((e as { code?: number }).code === 11000) return { error: 'Another account already uses this email.' }
+    throw e
+  }
+  revalidatePath('/', 'layout')
+  return { ok: emailChanged ? `Saved. Sign in with ${email} from now on.` : 'Saved.' }
 }
