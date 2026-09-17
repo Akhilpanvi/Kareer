@@ -77,7 +77,8 @@ npm run dev
 | `GITHUB_TOKEN` | classic token, no scopes — enables contribution calendar, 5000 req/h |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | seed-only; first admin account |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | enables "Forgot password?" emails (see below); without them the link is hidden in production |
-| `GEMINI_API_KEY`, `GEMINI_MODEL`, `GEMINI_DAILY_LIMIT` | Kloop Coach; default model `gemini-3.6-flash` |
+| `GEMINI_API_KEY`, `GEMINI_MODEL`, `GEMINI_DAILY_LIMIT` | Kloop Coach; default model `gemini-3.6-flash`; remaining questions shown in the panel |
+| `EMAIL_DOMAIN` | default `kluniversity.in`, used when a roster row has no email |
 | `APP_URL` | base URL used in reset links, default `https://kloop.klef.me` |
 
 ### Seeding students
@@ -92,9 +93,13 @@ Students get a read-only coach grounded in their own cached profile (skills, pro
 
 ### Roster upload and student setup
 
-The Placement Cell uploads students (`regNo,name,email,branch,batch` — optional `campus,section,phone`) from **Students → Add students**; rows without a `password` column create accounts with no password. Those students finish setup themselves at `/register`: registration number → details preview (email partly masked) → password → platform usernames and links. Usernames are checked live against each platform and must exist; GitHub, LeetCode and CodeChef are required (`REQUIRED` in `lib/onboarding.ts`), Codeforces optional. A resume link is required, portfolio optional. The first fetch is stored, so the dashboard has data immediately. `REGISTRATION=off` closes setup; admins can undo a setup with **Reset setup** on the student page.
+The Placement Cell uploads students (`regNo,name,branch,batch` — email defaults to `regNo@kluniversity.in`, set `EMAIL_DOMAIN` to change — optional `campus,section,phone`) from **Students → Add students**; rows without a `password` column create accounts with no password. Those students finish setup themselves at `/register`: registration number → details preview (email partly masked) → password → platform usernames and links. Usernames are checked live against each platform and must exist; GitHub, LeetCode and CodeChef are required (`REQUIRED` in `lib/onboarding.ts`), Codeforces optional. A resume link is required, portfolio optional. The first fetch is stored, so the dashboard has data immediately. `REGISTRATION=off` closes setup; admins can undo a setup with **Reset setup** on the student page.
 
 Any signed-in student missing a required username, holding a username that no longer exists, or missing a resume link gets a blocking popup with the same live checks until it is fixed. Live checks are capped at 60/day per account.
+
+### Public profiles
+
+Every student gets `/{slug}` from their name (`Akhil_Panvi`, reg-no tail appended on clashes) at `kloop.klef.me/profile/<slug>` — a recruiter-facing portfolio with headline, skills, projects, certifications, achievements, coding stats and links, never email or phone. Students see the link on **Profile** with a visibility toggle (`publicProfile`); the page is indexable, the rest of the app is not.
 
 ### Users panel
 

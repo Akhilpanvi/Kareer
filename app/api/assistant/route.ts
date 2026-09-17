@@ -9,6 +9,15 @@ export const maxDuration = 30
 const GAP_MS = 4000
 const fail = (error: string, status: number) => NextResponse.json({ error }, { status, headers: { 'Cache-Control': 'no-store' } })
 
+export async function GET() {
+  if (!assistantEnabled()) return fail('The assistant is not available.', 404)
+  const me = await currentUser()
+  if (!me || me.role !== 'student') return fail('Sign in as a student.', 401)
+  const u = await User.findById(me._id).select('+aiDay +aiCount').lean()
+  const used = u?.aiDay === new Date().toISOString().slice(0, 10) ? (u.aiCount ?? 0) : 0
+  return NextResponse.json({ remaining: Math.max(0, DAILY_LIMIT - used), limit: DAILY_LIMIT }, { headers: { 'Cache-Control': 'no-store' } })
+}
+
 export async function POST(req: NextRequest) {
   if (!assistantEnabled()) return fail('The assistant is not available.', 404)
   if (req.headers.get('origin') !== req.nextUrl.origin) return fail('Forbidden.', 403)

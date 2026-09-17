@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation'
 import { currentUser, startSession } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { HANDLE, Invalid, REGNO, str } from '@/lib/form'
-import { maskEmail, REQUIRED, registrationEnabled, summary, takeCheck } from '@/lib/onboarding'
+import { ensureSlug, maskEmail, REQUIRED, registrationEnabled, summary, takeCheck } from '@/lib/onboarding'
 import { hashPassword, passwordIssue } from '@/lib/password'
 import { PLATFORM_KEYS, PLATFORMS, recompute, verifyAndStore } from '@/lib/platforms'
 import { seal, unseal } from '@/lib/session'
@@ -113,8 +113,9 @@ export async function finishRegistration(ticket: string, fd: FormData): Promise<
       { _id: u._id, passwordHash: { $exists: false } },
       { $set: { passwordHash: await hashPassword(password), handles, 'links.resume': resume, 'links.portfolio': portfolio, registeredAt: new Date(), mustChangePassword: false, lastLoginAt: new Date() } },
       { returnDocument: 'after' },
-    ).select('role sessionVersion').lean()
+    ).select('role sessionVersion name regNo').lean()
     if (!claimed) return { error: 'This account was already set up. Sign in instead.' }
+    await ensureSlug(claimed._id, claimed.name, claimed.regNo)
     await recompute(claimed._id)
     await startSession({ _id: claimed._id, role: 'student', sessionVersion: claimed.sessionVersion })
     userId = claimed._id

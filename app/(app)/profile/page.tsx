@@ -8,6 +8,8 @@ import { updateAccount } from '@/app/actions/auth'
 import { ActionForm } from '@/components/forms'
 import { ChangePassword } from '@/components/change-password'
 import { Card, Field, PageHeader } from '@/components/ui'
+import { PublicLink } from '@/components/public-link'
+import { appUrl } from '@/lib/mail'
 import { StatusLine } from '@/components/overview'
 
 export const metadata: Metadata = { title: 'Profile' }
@@ -53,6 +55,11 @@ export default async function ProfilePage() {
           </Card>
         </div>
         <div className="space-y-5">
+          {user.slug && (
+            <Card title="Public profile">
+              <PublicLink url={`${appUrl()}/profile/${user.slug}`} path={`${appUrl().replace(/^https?:\/\//, '')}/profile/${user.slug}`} isPublic={user.publicProfile !== false} />
+            </Card>
+          )}
           <Card title="Official details">
             <dl className="space-y-3 text-sm">
               {official.map(([k, v]) => (

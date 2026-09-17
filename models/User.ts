@@ -6,7 +6,7 @@ const project = new Schema(
 )
 const certification = new Schema({ name: String, issuer: String, url: String, date: Date }, { timestamps: true })
 const achievement = new Schema({ title: String, description: String, date: Date }, { timestamps: true })
-const skill = new Schema({ name: String, level: { type: String, enum: ['beginner', 'intermediate', 'advanced'] } }, { _id: false })
+const skill = new Schema({ name: String, rating: { type: Number, min: 1, max: 5, default: 3 } }, { _id: false })
 
 const userSchema = new Schema(
   {
@@ -17,6 +17,8 @@ const userSchema = new Schema(
     passwordHash: { type: String, select: false }, // absent = uploaded by admin, not yet registered
     sessionVersion: { type: Number, default: 0 },
     mustChangePassword: { type: Boolean, default: false },
+    slug: { type: String, index: { unique: true, sparse: true } },
+    publicProfile: { type: Boolean, default: true },
     registeredAt: Date,
     checkDay: { type: String, select: false },
     checkCount: { type: Number, select: false },

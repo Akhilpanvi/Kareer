@@ -5,6 +5,7 @@ import { after } from 'next/server'
 import { requireAdmin } from '@/lib/auth'
 import { parseCsv } from '@/lib/csv'
 import { attempt, EMAIL, HANDLE, Invalid, REGNO, str, type State } from '@/lib/form'
+import { emailFor, ensureSlug } from '@/lib/onboarding'
 import { hashPassword, passwordIssue, tempPassword } from '@/lib/password'
 import { cohortSync, PLATFORM_KEYS, refreshUser, syncAllHandles, syncHandles } from '@/lib/platforms'
 import { PlatformStat } from '@/models/PlatformStat'
@@ -67,7 +68,7 @@ export async function refreshStudent(id: string): Promise<State> {
 
 function studentFields(fd: FormData) {
   const regNo = str(fd, 'regNo', 20).toUpperCase()
-  const email = str(fd, 'email', 120).toLowerCase()
+  const email = str(fd, 'email', 120).toLowerCase() || emailFor(regNo)
   const name = str(fd, 'name', 120)
   if (!regNo || !REGNO.test(regNo)) throw new Invalid('Enter a valid registration number (letters, numbers, dashes).')
   if (!name) throw new Invalid('Name is required.')
@@ -109,6 +110,7 @@ export async function createStudent(_: State, fd: FormData) {
       throw e
     }
     await syncHandles(user._id, fields.handles)
+    await ensureSlug(user._id, fields.name, fields.regNo)
     after(() => refreshUser(user._id))
     touched()
     return { ok: password ? 'Student added. They must change this password at first sign-in.' : 'Student added. They can now set up their account at /register.' }
@@ -161,7 +163,7 @@ export async function bulkImport(_: State, fd: FormData) {
     const byReg = new Map<string, { regNo: string; email: string; password?: string; handles: Record<string, string>; fields: Record<string, unknown> }>()
     for (const row of rows) {
       const regNo = (row.regNo || '').toUpperCase().trim()
-      const email = (row.email || '').toLowerCase().trim()
+      const email = (row.email || '').toLowerCase().trim() || (REGNO.test(regNo) ? emailFor(regNo) : '')
       const name = (row.name || '').trim()
       if (!REGNO.test(regNo) || !name || !EMAIL.test(email)) { skipped++; continue }
       const handles = Object.fromEntries(PLATFORM_KEYS.map(p => [p, cleanHandle(row[p])]).filter(([, h]) => h && HANDLE.test(h)))

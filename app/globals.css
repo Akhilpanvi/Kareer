@@ -2,6 +2,7 @@
 
 @theme {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-sora), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --color-brand-50: #fbf3f3;
   --color-brand-100: #f7e4e5;
   --color-brand-200: #efc6c8;
@@ -38,3 +39,13 @@ body { @apply bg-zinc-50 text-zinc-900 antialiased; }
 .hm .l2, .hm-legend .l2 { background: var(--color-brand-400); }
 .hm .l3, .hm-legend .l3 { background: var(--color-brand-600); }
 .hm .l4, .hm-legend .l4 { background: var(--color-brand-800); }
+
+@utility wordmark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  background: linear-gradient(100deg, var(--color-brand-700) 10%, var(--color-brand-500) 55%, #e07a2f 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}

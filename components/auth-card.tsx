@@ -7,7 +7,7 @@ export function AuthCard({ title, description, children }: { title: string; desc
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/brand/kl-lockup.png" alt="KL (Deemed to be University)" className="mx-auto mb-8 h-12 w-auto" />
         <div className="card p-6">
-          <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
+          <h1 className="font-display text-xl font-semibold tracking-tight">{title}</h1>
           <p className="mt-1.5 text-sm text-zinc-500">{description}</p>
           <div className="mt-6">{children}</div>
         </div>

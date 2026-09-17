@@ -12,9 +12,15 @@ export function Assistant() {
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState<string>()
+  const [quota, setQuota] = useState<{ remaining: number; limit: number }>()
   const end = useRef<HTMLDivElement>(null)
 
-  useEffect(() => end.current?.scrollIntoView({ block: 'end' }), [turns, busy, open])
+  useEffect(() => {
+    end.current?.scrollIntoView({ block: 'end' })
+  }, [turns, busy, open])
+  useEffect(() => {
+    if (open && !quota) fetch('/api/assistant').then(r => r.json()).then(setQuota).catch(() => {})
+  }, [open, quota])
 
   async function send(text: string) {
     const q = text.trim().slice(0, 500)
@@ -26,7 +32,8 @@ export function Assistant() {
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data.error ?? 'Something went wrong.')
       setTurns([...next, { role: 'model', text: data.reply }])
-      setNote(`${data.remaining} question${data.remaining === 1 ? '' : 's'} left today`)
+      setQuota(q => (q ? { ...q, remaining: data.remaining } : q))
+      setNote(undefined)
     } catch (e) {
       setTurns(turns)
       setInput(q)
@@ -44,6 +51,7 @@ export function Assistant() {
             <div>
               <p className="text-sm font-semibold">Kloop Coach</p>
               <p className="text-xs text-zinc-500">Advice based on your Kloop profile. Can&apos;t change your data.</p>
+              {quota && <p className="mt-0.5 text-xs text-zinc-500">{quota.remaining} of {quota.limit} questions left today</p>}
             </div>
             <button onClick={() => setOpen(false)} className="btn-ghost px-2" aria-label="Close"><X className="size-4" /></button>
           </header>

@@ -5,7 +5,7 @@ import { db } from '@/lib/db'
 import { monthYear } from '@/lib/format'
 import { addItem, addSkill, removeItem, removeSkill, type Kind } from '@/app/actions/profile'
 import { ActionForm } from '@/components/forms'
-import { Badge, Card, Disclosure, Empty, Field, PageHeader } from '@/components/ui'
+import { Badge, Card, Disclosure, Empty, Field, PageHeader, Rating } from '@/components/ui'
 import { User } from '@/models/User'
 
 export const metadata: Metadata = { title: 'Skills & Achievements' }
@@ -38,7 +38,7 @@ export default async function AchievementsPage() {
   await db()
   const u = await User.findById(me._id).select('skills projects certifications achievements').lean()
   if (!u) return null
-  const levels = ['advanced', 'intermediate', 'beginner'] as const
+  const ratings: [number, string][] = [[5, '5 — Expert'], [4, '4 — Advanced'], [3, '3 — Comfortable'], [2, '2 — Basic'], [1, '1 — Learning']]
 
   return (
     <>
@@ -47,32 +47,26 @@ export default async function AchievementsPage() {
         <Card title="Skills" className="lg:col-span-2">
           <Disclosure label="Add skills">
             <ActionForm action={addSkill} submit="Add" reset className="grid items-end gap-3 sm:grid-cols-[1fr_180px_auto]">
-              <Field label="Skills" hint="Separate multiple skills with commas."><input name="name" required className="input" placeholder="React, Node.js, SQL" /></Field>
-              <Field label="Level">
-                <select name="level" className="input" defaultValue="intermediate">
-                  {[...levels].reverse().map(l => <option key={l} value={l} className="capitalize">{l[0].toUpperCase() + l.slice(1)}</option>)}
+              <Field label="Skills" hint="Separate multiple skills with commas. Adding an existing skill updates its rating."><input name="name" required className="input" placeholder="React, Node.js, SQL" /></Field>
+              <Field label="Your rating">
+                <select name="rating" className="input" defaultValue="3">
+                  {ratings.map(([v, label]) => <option key={v} value={v}>{label}</option>)}
                 </select>
               </Field>
             </ActionForm>
           </Disclosure>
           {u.skills?.length ? (
-            <div className="grid gap-4 sm:grid-cols-3">
-              {levels.map(level => (
-                <div key={level}>
-                  <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500">{level}</h3>
-                  <ul className="flex flex-wrap gap-1.5">
-                    {u.skills.filter(s => s.level === level).map(s => (
-                      <li key={s.name} className="flex items-center gap-1 rounded-md border border-zinc-200 bg-white py-0.5 pr-0.5 pl-2 text-sm">
-                        {s.name}
-                        <form action={removeSkill.bind(null, s.name!)}>
-                          <button className="rounded px-1 text-zinc-400 hover:text-red-600" aria-label={`Remove ${s.name}`}>×</button>
-                        </form>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+            <ul className="flex flex-wrap gap-2">
+              {[...u.skills].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0)).map(s => (
+                <li key={s.name} className="flex items-center gap-2 rounded-md border border-zinc-200 bg-white py-1 pr-1 pl-2.5 text-sm">
+                  {s.name}
+                  <Rating value={s.rating ?? 3} label={s.name ?? undefined} />
+                  <form action={removeSkill.bind(null, s.name!)}>
+                    <button className="rounded px-1 text-zinc-400 hover:text-red-600" aria-label={`Remove ${s.name}`}>×</button>
+                  </form>
+                </li>
               ))}
-            </div>
+            </ul>
           ) : <Empty>List the technologies you are comfortable with.</Empty>}
         </Card>
 

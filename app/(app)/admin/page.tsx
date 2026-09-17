@@ -6,6 +6,7 @@ import { db } from '@/lib/db'
 import { filterOf, PAGE, sortOf, type Params } from '@/lib/admin'
 import { ago, fmt } from '@/lib/format'
 import { COHORT_COOLDOWN, CONCURRENCY, COOLDOWN, PER_RUN, PLATFORMS, TTL, syncStatus } from '@/lib/platforms'
+import { EMAIL_DOMAIN } from '@/lib/onboarding'
 import { bulkImport, bulkStudents, createStudent } from '@/app/actions/admin'
 import { ActionForm } from '@/components/forms'
 import { ConfirmSubmit, SelectAll } from '@/components/bulk'
@@ -80,7 +81,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <Field label="Registration no."><input name="regNo" required maxLength={20} className="input" placeholder="2300030001" /></Field>
               <Field label="Name"><input name="name" required maxLength={120} className="input" /></Field>
-              <Field label="Email"><input name="email" type="email" required maxLength={120} className="input" /></Field>
+              <Field label="Email (optional)"><input name="email" type="email" maxLength={120} className="input" placeholder={`regNo@${EMAIL_DOMAIN}`} /></Field>
               <Field label="Branch"><input name="branch" maxLength={40} className="input" placeholder="CSE" /></Field>
               <Field label="Batch"><input name="batch" maxLength={20} className="input" placeholder="2027" /></Field>
               <Field label="Campus"><input name="campus" maxLength={40} className="input" placeholder="VJA" /></Field>
@@ -103,12 +104,12 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         <Disclosure label="Bulk import from CSV">
           <ActionForm action={bulkImport} submit="Import" className="space-y-4">
             <p className="text-xs text-zinc-500">
-              Required columns: <code className="rounded bg-zinc-100 px-1 py-0.5">regNo,name,email,branch,batch</code>. Optional: <code className="rounded bg-zinc-100 px-1 py-0.5">campus,section,phone</code>.
+              Required columns: <code className="rounded bg-zinc-100 px-1 py-0.5">regNo,name,branch,batch</code>. Optional: <code className="rounded bg-zinc-100 px-1 py-0.5">email,campus,section,phone</code> — email defaults to <code className="rounded bg-zinc-100 px-1 py-0.5">regNo@{EMAIL_DOMAIN}</code>.
               Matching is by registration number — existing students are updated. New students set up their own account at <span className="font-medium">/register</span> (password, verified usernames, resume).
               {' '}<a href="/sample-students.csv" download className="font-medium text-brand-700 hover:underline">Download a sample CSV</a>.
             </p>
             <Field label="CSV file"><input name="file" type="file" accept=".csv,text/csv" className="input file:mr-3 file:rounded-md file:border-0 file:bg-zinc-100 file:px-3 file:py-1.5 file:text-sm file:font-medium" /></Field>
-            <Field label="or paste rows"><textarea name="csv" rows={4} maxLength={2000000} className="input font-mono text-xs" placeholder="regNo,name,email,branch,batch" /></Field>
+            <Field label="or paste rows"><textarea name="csv" rows={4} maxLength={2000000} className="input font-mono text-xs" placeholder="regNo,name,branch,batch" /></Field>
           </ActionForm>
         </Disclosure>
       </Card>

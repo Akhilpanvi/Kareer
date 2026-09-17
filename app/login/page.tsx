@@ -14,7 +14,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/brand/kl-lockup.png" alt="KL (Deemed to be University)" className="h-14 w-auto self-start" />
         <div className="mx-auto w-full max-w-sm py-12">
-          <h1 className="text-2xl font-semibold tracking-tight">Sign in to Kloop</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Sign in to <span className="wordmark">Kloop</span></h1>
           <p className="mt-1.5 text-sm text-zinc-500">Use the credentials issued by the Placement Cell.</p>
                     {reset && <p role="status" className="mt-6 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">Password updated. Sign in with your new password.</p>}
           <LoginForm />

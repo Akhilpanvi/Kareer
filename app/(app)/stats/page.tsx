@@ -59,19 +59,19 @@ export default async function StatsPage() {
         <Section platform="leetcode" s={stats.leetcode}>
           {lc => (
             <div className="space-y-6">
-              <Kpis items={[['Solved', fmt(lc.solved.all)], ['Contest rating', fmt(lc.contest?.rating)], ['Contests', fmt(lc.contest?.attended)], ['Global rank', fmt(lc.ranking)]]} />
+              <Kpis items={[['Solved', fmt(lc.solved?.all)], ['Contest rating', fmt(lc.contest?.rating)], ['Contests', fmt(lc.contest?.attended)], ['Global rank', fmt(lc.ranking)]]} />
               <div className="grid gap-6 md:grid-cols-2">
-                <Sub title="Difficulty"><Difficulty solved={lc.solved} totals={lc.totals} /></Sub>
+                <Sub title="Difficulty"><Difficulty solved={lc.solved ?? {}} totals={lc.totals} /></Sub>
                 <Sub title="Solved over time"><Trend points={growth(stats.leetcode)} /></Sub>
-                <Sub title="Top topics"><Bars items={lc.topics.slice(0, 8).map((t: any) => ({ ...t, hint: `${t.n} · ${t.level}` }))} /></Sub>
-                <Sub title="Languages"><Bars items={lc.languages} /></Sub>
+                <Sub title="Top topics"><Bars items={(lc.topics ?? []).slice(0, 8).map((t: any) => ({ ...t, hint: `${t.n} · ${t.level}` }))} /></Sub>
+                <Sub title="Languages"><Bars items={lc.languages ?? []} /></Sub>
               </div>
               {lc.calendar && Object.keys(lc.calendar).length > 0 && <Sub title="Submissions"><Heatmap days={lc.calendar} /></Sub>}
               <div className="grid gap-6 md:grid-cols-2">
                 <Sub title="Recently solved">
-                  {lc.recent.length ? (
+                  {lc.recent?.length ? (
                     <ul className="divide-y divide-zinc-100 text-sm">
-                      {lc.recent.map((r: any) => (
+                      {lc.recent!.map((r: any) => (
                         <li key={r.url + r.at} className="flex justify-between gap-3 py-2">
                           <a href={r.url} target="_blank" rel="noopener noreferrer" className="truncate hover:text-brand-700">{r.title}</a>
                           <span className="shrink-0 text-xs text-zinc-500">{ago(r.at)}</span>
@@ -80,7 +80,7 @@ export default async function StatsPage() {
                     </ul>
                   ) : <Empty>No recent accepted submissions.</Empty>}
                 </Sub>
-                <Sub title="Badges">{lc.badges.length ? <div className="flex flex-wrap gap-1.5">{lc.badges.map((b: string) => <Badge key={b}>{b}</Badge>)}</div> : <Empty>No badges yet.</Empty>}</Sub>
+                <Sub title="Badges">{lc.badges?.length ? <div className="flex flex-wrap gap-1.5">{lc.badges!.map((b: string) => <Badge key={b}>{b}</Badge>)}</div> : <Empty>No badges yet.</Empty>}</Sub>
               </div>
             </div>
           )}
@@ -94,20 +94,20 @@ export default async function StatsPage() {
               <div className="grid gap-6 md:grid-cols-[2fr_1fr]">
                 <Sub title="Recently active repositories">
                   <ul className="grid gap-3 sm:grid-cols-2">
-                    {gh.repos.map((r: any) => (
+                    {(gh.repos ?? []).map((r: any) => (
                       <li key={r.name} className="rounded-lg border border-zinc-200 p-3.5">
                         <a href={r.url} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold hover:text-brand-700">{r.name}</a>
                         {r.description && <p className="mt-1 line-clamp-2 text-xs text-zinc-600">{r.description}</p>}
                         <div className="mt-2 flex gap-3 text-xs text-zinc-500">
                           {r.language && <span>{r.language}</span>}
-                          <span className="flex items-center gap-0.5"><Star className="size-3" />{r.stars}</span>
+                          <span className="flex items-center gap-0.5"><Star className="size-3" />{r.stars ?? 0}</span>
                           <span>{ago(r.pushedAt)}</span>
                         </div>
                       </li>
                     ))}
                   </ul>
                 </Sub>
-                <Sub title="Languages (by repository)">{gh.languages.length ? <Bars items={gh.languages} /> : <Empty>No languages detected.</Empty>}</Sub>
+                <Sub title="Languages (by repository)">{gh.languages?.length ? <Bars items={gh.languages!} /> : <Empty>No languages detected.</Empty>}</Sub>
               </div>
             </div>
           )}
@@ -117,8 +117,8 @@ export default async function StatsPage() {
           <Section platform="codechef" s={stats.codechef}>
             {cc => (
               <div className="space-y-6">
-                <Kpis items={[['Rating', fmt(cc.rating)], ['Stars', `${cc.stars}★`], ['Highest', fmt(cc.highest)], ['Solved', fmt(cc.solved)]]} />
-                <Sub title="Rating history (recent contests)"><Trend points={cc.history.map((h: any) => ({ label: new Date(h.at).toLocaleDateString('en-IN', { month: 'short', year: '2-digit' }), value: h.rating }))} /></Sub>
+                <Kpis items={[['Rating', fmt(cc.rating)], ['Stars', `${cc.stars ?? 0}★`], ['Highest', fmt(cc.highest)], ['Solved', fmt(cc.solved)]]} />
+                <Sub title="Rating history (recent contests)"><Trend points={(cc.history ?? []).map((h: any) => ({ label: new Date(h.at).toLocaleDateString('en-IN', { month: 'short', year: '2-digit' }), value: h.rating }))} /></Sub>
                 <p className="text-xs text-zinc-500">Global rank {fmt(cc.globalRank)} · Country rank {fmt(cc.countryRank)} · {cc.contests} rated contests</p>
               </div>
             )}
@@ -127,7 +127,7 @@ export default async function StatsPage() {
             {cf => (
               <div className="space-y-6">
                 <Kpis items={[['Rating', fmt(cf.rating)], ['Max rating', fmt(cf.maxRating)], ['Rank', <span key="r" className="text-sm capitalize">{cf.rank}</span>], ['Contests', fmt(cf.contests)]]} />
-                <Sub title="Rating history (recent contests)"><Trend points={cf.history.map((h: any) => ({ label: new Date(h.at).toLocaleDateString('en-IN', { month: 'short', year: '2-digit' }), value: h.rating }))} /></Sub>
+                <Sub title="Rating history (recent contests)"><Trend points={(cf.history ?? []).map((h: any) => ({ label: new Date(h.at).toLocaleDateString('en-IN', { month: 'short', year: '2-digit' }), value: h.rating }))} /></Sub>
               </div>
             )}
           </Section>

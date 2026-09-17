@@ -75,15 +75,15 @@ export async function removeItem(kind: Kind, id: string) {
 export async function addSkill(_: State, fd: FormData) {
   return attempt(async () => {
     const me = await requireUser()
-    const level = str(fd, 'level', 20)
-    if (!['beginner', 'intermediate', 'advanced'].includes(level)) throw new Invalid('Choose a level.')
+    const rating = Number(str(fd, 'rating', 2))
+    if (!(rating >= 1 && rating <= 5)) throw new Invalid('Choose a rating from 1 to 5.')
     const names = list(fd, 'name').map(n => n.slice(0, 40))
     if (!names.length) throw new Invalid('Enter a skill.')
     const user = await User.findById(me._id).select('skills')
     if (!user) throw new Invalid('Not found.')
     const rest = user.skills.filter(s => !names.some(n => n.toLowerCase() === s.name?.toLowerCase()))
     if (rest.length + names.length > 40) throw new Invalid('You can list up to 40 skills.')
-    user.set('skills', [...rest, ...names.map(name => ({ name, level }))])
+    user.set('skills', [...rest, ...names.map(name => ({ name, rating }))])
     await user.save()
     return done(me._id, 'Skills updated.')
   })
@@ -93,6 +93,12 @@ export async function removeSkill(name: string) {
   const me = await requireUser()
   await User.updateOne({ _id: me._id }, { $pull: { skills: { name: String(name).slice(0, 40) } } })
   done(me._id, '')
+}
+
+export async function setPublicProfile(on: boolean) {
+  const me = await requireUser()
+  await User.updateOne({ _id: me._id, role: 'student' }, { $set: { publicProfile: !!on } })
+  revalidatePath('/profile', 'layout')
 }
 
 export async function syncNow(): Promise<State> {

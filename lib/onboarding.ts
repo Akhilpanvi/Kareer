@@ -7,6 +7,8 @@ import { User } from '@/models/User'
 export const REQUIRED = ['github', 'leetcode', 'codechef']
 export const platformFields = () => PLATFORM_KEYS.map(key => ({ key, label: PLATFORMS[key].label, required: REQUIRED.includes(key) }))
 export const registrationEnabled = () => process.env.REGISTRATION !== 'off'
+export const EMAIL_DOMAIN = (process.env.EMAIL_DOMAIN ?? 'kluniversity.in').toLowerCase()
+export const emailFor = (regNo: string) => `${regNo.toLowerCase()}@${EMAIL_DOMAIN}`
 
 const CHECKS_PER_DAY = 60
 
@@ -40,4 +42,19 @@ export function profileGaps(handles: Record<string, string> | undefined, resume:
 export function maskEmail(email: string) {
   const [local, domain] = email.split('@')
   return `${local.slice(0, 2)}${'•'.repeat(Math.max(3, local.length - 3))}${local.slice(-1)}@${domain}`
+}
+
+const slugOf = (name: string) => name.trim().split(/\s+/).map(w => w.replace(/[^A-Za-z0-9]/g, '')).filter(Boolean).join('_').slice(0, 60) || 'student'
+
+/** Public profile slug from the student's name, with the reg. no tail appended if taken. */
+export async function ensureSlug(id: Types.ObjectId | string, name: string, regNo: string) {
+  const base = slugOf(name)
+  for (const candidate of [base, `${base}_${regNo.slice(-4)}`, `${base}_${regNo}`]) {
+    const taken = await User.exists({ slug: candidate, _id: { $ne: id } })
+    if (!taken) {
+      await User.updateOne({ _id: id }, { $set: { slug: candidate } })
+      return candidate
+    }
+  }
+  return null
 }

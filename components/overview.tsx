@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { Activity, Award, BadgeCheck, Code2, ExternalLink, FileText, Briefcase, FolderGit2, GitBranch, Globe, Sparkles, Star, Target, TrendingUp, Trophy } from 'lucide-react'
 import { Bars, Difficulty, Heatmap, ScoreRing } from './charts'
-import { Avatar, Badge, Card, Empty, Meter, Stat } from './ui'
+import { Avatar, Badge, Card, Empty, Meter, Rating, Stat } from './ui'
 import { ago, fmt, monthYear } from '@/lib/format'
 import { PLATFORMS } from '@/lib/platforms'
 import { breakdown, MAX } from '@/lib/score'
@@ -92,8 +92,8 @@ export function Overview({ student, actions, self }: { student: Student; actions
       </section>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
-        <Stat label="LeetCode solved" icon={Code2} value={fmt(lc?.solved?.all)} hint={lc?.contest ? `Contest rating ${lc.contest.rating}` : lc ? `${lc.solved.hard} hard` : 'Not connected'} />
-        <Stat label="CodeChef rating" icon={Trophy} value={fmt(cc?.rating)} hint={cc ? `${cc.stars}★ · highest ${fmt(cc.highest)}` : 'Not connected'} />
+        <Stat label="LeetCode solved" icon={Code2} value={fmt(lc?.solved?.all)} hint={lc?.contest ? `Contest rating ${lc.contest.rating}` : lc ? `${lc.solved?.hard ?? 0} hard` : 'Not connected'} />
+        <Stat label="CodeChef rating" icon={Trophy} value={fmt(cc?.rating)} hint={cc ? `${cc.stars ?? 0}★ · highest ${fmt(cc.highest)}` : 'Not connected'} />
         <Stat label="Codeforces rating" icon={Target} value={fmt(cf?.rating)} hint={cf ? cf.rank : 'Not connected'} />
         <Stat label="GitHub repositories" icon={FolderGit2} value={fmt(user.metrics?.ghRepos)} hint={gh ? `${fmt(gh.stars)} stars` : 'Not connected'} />
         <Stat label="Projects" icon={Sparkles} value={user.projects?.length ?? 0} hint={`${user.skills?.length ?? 0} skills listed`} />
@@ -121,8 +121,8 @@ export function Overview({ student, actions, self }: { student: Student; actions
         <Card title="LeetCode" icon={Code2} action={<StatusLine stat={stats.leetcode} />}>
           {lc ? (
             <div className="space-y-5">
-              <Difficulty solved={lc.solved} totals={lc.totals} />
-              {lc.topics?.length > 0 && <Bars items={lc.topics.slice(0, 5)} />}
+              <Difficulty solved={lc.solved ?? {}} totals={lc.totals} />
+              {lc.topics?.length ? <Bars items={lc.topics.slice(0, 5)} /> : null}
             </div>
           ) : <Empty>No LeetCode data.</Empty>}
         </Card>
@@ -134,7 +134,7 @@ export function Overview({ student, actions, self }: { student: Student; actions
                   <a href={r.url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-zinc-900 hover:text-brand-700">{r.name}</a>
                   <div className="mt-0.5 flex items-center gap-3 text-xs text-zinc-500">
                     {r.language && <span>{r.language}</span>}
-                    <span className="flex items-center gap-0.5"><Star className="size-3" />{r.stars}</span>
+                    <span className="flex items-center gap-0.5"><Star className="size-3" />{r.stars ?? 0}</span>
                     <span>updated {ago(r.pushedAt)}</span>
                   </div>
                 </li>
@@ -182,9 +182,13 @@ export function Overview({ student, actions, self }: { student: Student; actions
         <div className="space-y-5">
           <Card title="Skills" icon={Sparkles} action={add('/achievements', 'Manage')}>
             {user.skills?.length ? (
-              <div className="flex flex-wrap gap-1.5">
-                {user.skills.map(s => <Badge key={s.name} tone={s.level === 'advanced' ? 'brand' : 'zinc'}>{s.name}</Badge>)}
-              </div>
+              <ul className="flex flex-wrap gap-1.5">
+                {[...user.skills].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0)).map(s => (
+                  <li key={s.name} className="flex items-center gap-1.5 rounded-md border border-zinc-200 px-2 py-0.5 text-xs font-medium text-zinc-700">
+                    {s.name}<Rating value={s.rating ?? 3} label={s.name ?? undefined} />
+                  </li>
+                ))}
+              </ul>
             ) : <Empty>No skills listed.</Empty>}
           </Card>
           <Card title="Certifications" icon={BadgeCheck} action={add('/achievements#certifications', 'Manage')}>

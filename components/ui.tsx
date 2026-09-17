@@ -22,7 +22,7 @@ export function PageHeader({ title, description, children }: { title: string; de
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight text-zinc-900 sm:text-2xl">{title}</h1>
+        <h1 className="font-display text-xl font-semibold tracking-tight text-zinc-900 sm:text-2xl">{title}</h1>
         {description && <p className="mt-1 text-sm text-zinc-500">{description}</p>}
       </div>
       {children}
@@ -86,6 +86,14 @@ export function Field({ label, children, hint }: { label: string; children: Reac
   )
 }
 
+export function Rating({ value, label }: { value: number; label?: string }) {
+  return (
+    <span className="inline-flex gap-0.5" role="img" aria-label={`${label ? label + ': ' : ''}${value} out of 5`}>
+      {[1, 2, 3, 4, 5].map(i => <span key={i} className={`size-1.5 rounded-full ${i <= value ? 'bg-brand-600' : 'bg-zinc-200'}`} />)}
+    </span>
+  )
+}
+
 export function Disclosure({ children, label, defaultOpen }: { children: React.ReactNode; label: string; defaultOpen?: boolean }) {
   return (
     <details open={defaultOpen} className="group mb-5 rounded-lg border border-zinc-200 bg-zinc-50/60 open:bg-white last:mb-0">
@@ -101,7 +109,7 @@ export function Brand({ compact }: { compact?: boolean }) {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/brand/kl-seal.png" alt="KL University" className="size-9" />
       <span className="leading-tight">
-        <span className="block text-[15px] font-semibold tracking-tight text-zinc-900">Kloop</span>
+        <span className="wordmark block text-[17px] leading-tight">Kloop</span>
         {!compact && <span className="block text-[11px] text-zinc-500">Placement Cell · KL University</span>}
       </span>
     </span>

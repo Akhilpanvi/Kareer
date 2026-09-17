@@ -23,7 +23,7 @@ export function studentContext({ user, stats }: Student) {
     branch: user.branch, batch: user.batch, cgpa: user.cgpa,
     headline: user.headline,
     profileStrength: { score: user.score ?? 0, outOf: 100, parts: Object.fromEntries(Object.entries(parts).map(([k, v]) => [k, `${Math.round(v)}/${MAX[k as keyof typeof MAX]}`])) },
-    skills: user.skills?.map(s => `${s.name} (${s.level})`),
+    skills: user.skills?.map(s => `${s.name} (self-rated ${s.rating}/5)`),
     projects: user.projects?.slice(0, 10).map(p => ({ title: p.title, tech: p.tech })),
     certifications: user.certifications?.slice(0, 10).map(c => c.name),
     achievements: user.achievements?.slice(0, 10).map(a => a.title),
@@ -38,6 +38,17 @@ export function studentContext({ user, stats }: Student) {
 export type Turn = { role: 'user' | 'model'; text: string }
 
 export async function askGemini(context: string, turns: Turn[]) {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await call(context, turns)
+    } catch (e) {
+      if (attempt || !/ 429| 5\d\d/.test((e as Error).message)) throw e
+      await new Promise(r => setTimeout(r, 1500))
+    }
+  }
+}
+
+async function call(context: string, turns: Turn[]) {
   const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${process.env.GEMINI_MODEL ?? 'gemini-3.6-flash'}:generateContent`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY! },
