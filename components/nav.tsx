@@ -24,6 +24,7 @@ export function Nav({ admin }: { admin: boolean }) {
           <Link
             key={href}
             href={href}
+            prefetch={false}
             aria-current={active ? 'page' : undefined}
             className={`flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition ${active ? 'bg-brand-50 text-brand-700' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'}`}
           >

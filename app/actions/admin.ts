@@ -6,11 +6,17 @@ import { requireAdmin } from '@/lib/auth'
 import { parseCsv } from '@/lib/csv'
 import { attempt, EMAIL, HANDLE, Invalid, REGNO, str, type State } from '@/lib/form'
 import { hashPassword, passwordIssue, tempPassword } from '@/lib/password'
-import { PLATFORM_KEYS, refreshUser, syncHandles } from '@/lib/platforms'
+import { PLATFORM_KEYS, refreshUser, syncAllHandles, syncHandles } from '@/lib/platforms'
 import { PlatformStat } from '@/models/PlatformStat'
 import { User } from '@/models/User'
 
 const valid = (id: string) => /^[a-f0-9]{24}$/.test(id)
+
+/** Invalidate only the list and, when given, that student's page — not the whole admin tree. */
+function touched(id?: string) {
+  revalidatePath('/admin')
+  if (id) revalidatePath(`/admin/students/${id}`)
+}
 
 export async function resetPassword(id: string): Promise<State> {
   await requireAdmin()
@@ -27,7 +33,7 @@ export async function setActive(id: string, active: boolean): Promise<State> {
   await requireAdmin()
   if (!valid(id)) return { error: 'Invalid student.' }
   await User.updateOne({ _id: id, role: 'student' }, { $set: { active }, $inc: { sessionVersion: 1 } })
-  revalidatePath('/admin', 'layout')
+  touched(id)
   return { ok: active ? 'Account enabled.' : 'Account disabled.' }
 }
 
@@ -35,7 +41,7 @@ export async function refreshStudent(id: string): Promise<State> {
   await requireAdmin()
   if (!valid(id)) return { error: 'Invalid student.' }
   const n = await refreshUser(id, true)
-  revalidatePath('/admin', 'layout')
+  touched(id)
   return n ? { ok: `Synced ${n} platform${n > 1 ? 's' : ''}.` } : { error: 'Synced recently. Try again later.' }
 }
 
@@ -87,7 +93,7 @@ export async function createStudent(_: State, fd: FormData) {
     }
     await syncHandles(user._id, fields.handles)
     after(() => refreshUser(user._id))
-    revalidatePath('/admin', 'layout')
+    touched()
     return { ok: 'Student added.', ...(given ? {} : { secret: password }) }
   })
 }
@@ -107,7 +113,7 @@ export async function updateStudent(id: string, _: State, fd: FormData) {
     if (!r.matchedCount) throw new Invalid('Student not found.')
     await syncHandles(id, fields.handles)
     after(() => refreshUser(id))
-    revalidatePath('/admin', 'layout')
+    touched(id)
     return { ok: 'Student details updated.' }
   })
 }
@@ -116,57 +122,79 @@ export async function deleteStudent(id: string): Promise<State> {
   await requireAdmin()
   if (!valid(id)) return { error: 'Invalid student.' }
   await Promise.all([User.deleteOne({ _id: id, role: 'student' }), PlatformStat.deleteMany({ user: id })])
-  revalidatePath('/admin', 'layout')
+  touched()
   return { ok: 'Student deleted.' }
 }
+
+const IMPORT_LIMIT = 5000
+const cleanHandle = (v = '') => v.replace(/^https?:\/\/[^/]+\/(u\/|users\/|profile\/)?/i, '').split(/[/?]/)[0].trim().replace(/^@/, '')
 
 export async function bulkImport(_: State, fd: FormData) {
   return attempt(async () => {
     await requireAdmin()
     const file = fd.get('file')
-    const text = file instanceof File && file.size ? await file.text() : str(fd, 'csv', 300_000)
+    const text = file instanceof File && file.size ? await file.text() : str(fd, 'csv', 2_000_000)
     if (!text.trim()) throw new Invalid('Provide a CSV file or paste rows.')
     const rows = parseCsv(text)
     if (!rows.length) throw new Invalid('No rows found. Include a header row: regNo,name,email,...')
+    if (rows.length > IMPORT_LIMIT) throw new Invalid(`Import at most ${IMPORT_LIMIT.toLocaleString()} rows at a time.`)
 
-    let created = 0, updated = 0, skipped = 0
-    const issued: string[] = []
+    // Validate and de-duplicate by regNo (last row wins)
+    let skipped = 0
+    const byReg = new Map<string, { regNo: string; email: string; password?: string; handles: Record<string, string>; fields: Record<string, unknown> }>()
     for (const row of rows) {
       const regNo = (row.regNo || '').toUpperCase().trim()
       const email = (row.email || '').toLowerCase().trim()
       const name = (row.name || '').trim()
-      if (!regNo || !REGNO.test(regNo) || !name || !EMAIL.test(email)) { skipped++; continue }
-
-      const handles = Object.fromEntries(
-        PLATFORM_KEYS.map(p => [p, (row[p] || '').replace(/^https?:\/\/[^/]+\/(u\/|users\/|profile\/)?/i, '').split(/[/?]/)[0].trim()]).filter(([, h]) => h),
-      )
+      if (!REGNO.test(regNo) || !name || !EMAIL.test(email)) { skipped++; continue }
+      const handles = Object.fromEntries(PLATFORM_KEYS.map(p => [p, cleanHandle(row[p])]).filter(([, h]) => h && HANDLE.test(h)))
       const fields: Record<string, unknown> = {
         name: name.slice(0, 120), email: email.slice(0, 120),
         ...Object.fromEntries((['branch', 'batch', 'campus', 'section', 'phone'] as const).filter(k => row[k]).map(k => [k, row[k].trim().slice(0, 40)])),
         ...(Object.keys(handles).length && { handles }),
       }
-      const cgpa = row.cgpa && +row.cgpa >= 0 && +row.cgpa <= 10 ? +row.cgpa : undefined
-      if (cgpa != null) fields.cgpa = cgpa
+      if (row.cgpa && +row.cgpa >= 0 && +row.cgpa <= 10) fields.cgpa = +row.cgpa
+      if (byReg.has(regNo)) skipped++
+      byReg.set(regNo, { regNo, email, password: row.password?.trim() || undefined, handles, fields })
+    }
+    const list = [...byReg.values()]
+    if (!list.length) throw new Invalid(`No valid rows. ${skipped} skipped — each row needs regNo, name and a valid email.`)
 
-      const existing = await User.exists({ regNo })
-      const password = !existing ? row.password || tempPassword() : undefined
-      if (password) fields.passwordHash = await hashPassword(password)
+    // One read for existing students; hash new passwords in parallel batches
+    const existing = new Set((await User.find({ regNo: { $in: list.map(r => r.regNo) } }).select('regNo').lean()).map(u => u.regNo))
+    const fresh = list.filter(r => !existing.has(r.regNo))
+    for (let i = 0; i < fresh.length; i += 32)
+      await Promise.all(fresh.slice(i, i + 32).map(async r => {
+        r.password ??= tempPassword()
+        r.fields.passwordHash = await hashPassword(r.password)
+      }))
 
-      let user
-      try {
-        user = await User.findOneAndUpdate({ regNo }, { $set: fields, $setOnInsert: { role: 'student' } }, { upsert: true, new: true }).lean()
-      } catch {
-        skipped++
-        continue
-      }
-      if (!user) { skipped++; continue }
-      await syncHandles(user._id, user.handles ?? {})
-      if (password) issued.push(`${regNo},${email},${password}`)
-      existing ? updated++ : created++
+    // One bulk write; rows that conflict (e.g. an email used by another student) are reported as skipped
+    const failed = new Set<number>()
+    try {
+      await User.bulkWrite(
+        list.map(r => ({ updateOne: { filter: { regNo: r.regNo }, update: { $set: r.fields, $setOnInsert: { role: 'student' } }, upsert: true } })),
+        { ordered: false },
+      )
+    } catch (e) {
+      const errors = (e as { writeErrors?: { index: number } | { index: number }[] }).writeErrors
+      if (!errors) throw e
+      for (const w of [errors].flat()) failed.add(w.index)
+    }
+    const saved = list.filter((_, i) => !failed.has(i))
+
+    const withHandles = saved.filter(r => Object.keys(r.handles).length)
+    if (withHandles.length) {
+      const users = await User.find({ regNo: { $in: withHandles.map(r => r.regNo) } }).select('handles').lean()
+      await syncAllHandles(users.map(u => ({ user: u._id, handles: u.handles ?? {} })))
     }
 
-    revalidatePath('/admin', 'layout')
-    return { ok: `${created} created, ${updated} updated${skipped ? `, ${skipped} skipped` : ''}.`, rows: issued }
+    touched()
+    const created = saved.filter(r => !existing.has(r.regNo))
+    return {
+      ok: `${created.length} created, ${saved.length - created.length} updated${skipped + failed.size ? `, ${skipped + failed.size} skipped` : ''}.`,
+      rows: created.map(r => `${r.regNo},${r.email},${r.password}`),
+    }
   })
 }
 

@@ -55,7 +55,7 @@ export function Overview({ student, actions, self }: { student: Student; actions
     user.links?.resume && { href: user.links.resume, label: 'Resume', icon: FileText },
     ...Object.entries(user.handles ?? {}).filter(([p]) => PLATFORMS[p]).map(([p, h]) => ({ href: PLATFORMS[p].url(h), label: PLATFORMS[p].label, icon: ExternalLink })),
   ].filter(Boolean) as { href: string; label: string; icon: typeof Globe }[]
-  const add = (href: string, text: string) => (self ? <Link href={href} className="text-xs font-medium text-brand-700 hover:underline">{text}</Link> : undefined)
+  const add = (href: string, text: string) => (self ? <Link href={href} prefetch={false} className="text-xs font-medium text-brand-700 hover:underline">{text}</Link> : undefined)
 
   return (
     <div className="space-y-5">
@@ -67,7 +67,7 @@ export function Overview({ student, actions, self }: { student: Student; actions
             <p className="mt-0.5 text-sm text-zinc-500">
               {[user.regNo, user.branch, user.batch && `Batch ${user.batch}`, user.campus, user.cgpa && `CGPA ${user.cgpa}`].filter(Boolean).join(' · ')}
             </p>
-            {user.headline ? <p className="mt-2 text-sm text-zinc-700">{user.headline}</p> : self && <Link href="/profile" className="mt-2 inline-block text-sm text-brand-700 hover:underline">Add a headline and links →</Link>}
+            {user.headline ? <p className="mt-2 text-sm text-zinc-700">{user.headline}</p> : self && <Link href="/profile" prefetch={false} className="mt-2 inline-block text-sm text-brand-700 hover:underline">Add a headline and links →</Link>}
             {links.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-2">
                 {links.map(l => (

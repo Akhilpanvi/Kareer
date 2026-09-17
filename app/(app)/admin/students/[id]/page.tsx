@@ -24,7 +24,7 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
   return (
     <>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <Link href="/admin" className="btn-ghost -ml-3"><ArrowLeft className="size-4" />All students</Link>
+        <Link href="/admin" prefetch={false} className="btn-ghost -ml-3"><ArrowLeft className="size-4" />All students</Link>
         <span className="text-xs text-zinc-500">{user.email} · {user.phone || 'no phone'} · last login {ago(user.lastLoginAt)}</span>
       </div>
       <Overview student={student} actions={<StudentAdmin id={String(user._id)} active={user.active ?? true} />} />

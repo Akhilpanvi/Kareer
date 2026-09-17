@@ -28,3 +28,13 @@ body { @apply bg-zinc-50 text-zinc-900 antialiased; }
 @utility btn-outline { @apply btn border border-zinc-300 bg-white text-zinc-700 shadow-xs hover:bg-zinc-50; }
 @utility btn-ghost { @apply btn text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900; }
 @utility label { @apply mb-1.5 block text-sm font-medium text-zinc-700; }
+
+.hm, .hm-months { display: grid; grid-auto-flow: column; grid-auto-columns: 11px; column-gap: 3px; }
+.hm { grid-template-rows: repeat(7, 11px); row-gap: 3px; }
+.hm-months { height: 16px; font-size: 10px; color: var(--color-zinc-400); }
+.hm-months span { white-space: nowrap; }
+.hm i, .hm-legend i { display: block; width: 11px; height: 11px; border-radius: 2px; background: var(--color-zinc-100); }
+.hm .l1, .hm-legend .l1 { background: var(--color-brand-200); }
+.hm .l2, .hm-legend .l2 { background: var(--color-brand-400); }
+.hm .l3, .hm-legend .l3 { background: var(--color-brand-600); }
+.hm .l4, .hm-legend .l4 { background: var(--color-brand-800); }

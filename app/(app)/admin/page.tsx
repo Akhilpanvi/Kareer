@@ -85,7 +85,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
               {' '}<a href="/sample-students.csv" download className="font-medium text-brand-700 hover:underline">Download a sample CSV</a>.
             </p>
             <Field label="CSV file"><input name="file" type="file" accept=".csv,text/csv" className="input file:mr-3 file:rounded-md file:border-0 file:bg-zinc-100 file:px-3 file:py-1.5 file:text-sm file:font-medium" /></Field>
-            <Field label="or paste rows"><textarea name="csv" rows={4} maxLength={300000} className="input font-mono text-xs" placeholder="regNo,name,email,branch,batch,campus,section,phone,github,leetcode,codechef,codeforces,password" /></Field>
+            <Field label="or paste rows"><textarea name="csv" rows={4} maxLength={2000000} className="input font-mono text-xs" placeholder="regNo,name,email,branch,batch,campus,section,phone,github,leetcode,codechef,codeforces,password" /></Field>
           </ActionForm>
         </Disclosure>
       </Card>
@@ -145,7 +145,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                   <tr key={String(s._id)} className="hover:bg-zinc-50/70">
                     <td className="px-4 py-2.5"><input type="checkbox" name="ids" value={String(s._id)} className="size-4 rounded border-zinc-300" aria-label={`Select ${s.name}`} /></td>
                     <td className="px-4 py-2.5">
-                      <Link href={`/admin/students/${s._id}`} className="flex items-center gap-3">
+                      <Link href={`/admin/students/${s._id}`} prefetch={false} className="flex items-center gap-3">
                         <Avatar name={s.name} size="size-8" />
                         <span className="min-w-0">
                           <span className="block truncate font-medium text-zinc-900 hover:text-brand-700">{s.name}</span>
@@ -173,8 +173,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         <footer className="flex items-center justify-between border-t border-zinc-100 px-4 py-3 text-sm text-zinc-500">
           <span>{total ? `${(page - 1) * PAGE + 1}–${Math.min(page * PAGE, total)} of ${fmt(total)}` : '0 results'}</span>
           <div className="flex gap-2">
-            {page > 1 ? <Link href={qs({ page: String(page - 1) })} className="btn-outline py-1.5">Previous</Link> : <span className="btn-outline pointer-events-none py-1.5 opacity-50">Previous</span>}
-            {page < pages ? <Link href={qs({ page: String(page + 1) })} className="btn-outline py-1.5">Next</Link> : <span className="btn-outline pointer-events-none py-1.5 opacity-50">Next</span>}
+            {page > 1 ? <Link href={qs({ page: String(page - 1) })} prefetch={false} className="btn-outline py-1.5">Previous</Link> : <span className="btn-outline pointer-events-none py-1.5 opacity-50">Previous</span>}
+            {page < pages ? <Link href={qs({ page: String(page + 1) })} prefetch={false} className="btn-outline py-1.5">Next</Link> : <span className="btn-outline pointer-events-none py-1.5 opacity-50">Next</span>}
           </div>
         </footer>
       </section>

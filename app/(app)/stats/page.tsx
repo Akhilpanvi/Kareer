@@ -41,14 +41,14 @@ function Section({ platform, s, children }: { platform: string; s?: Student['sta
       title={p.label}
       action={s && <div className="flex items-center gap-3"><StatusLine stat={s} /><a href={p.url(s.handle)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs font-medium text-zinc-600 hover:text-zinc-900">@{s.handle}<ExternalLink className="size-3" /></a></div>}
     >
-      {s?.data ? children(s.data) : <Empty>{s ? (s.status === 'pending' ? 'Waiting for first sync.' : 'No data available for this username.') : <>Not connected. <Link href="/profile" className="text-brand-700 hover:underline">Add your {p.label} username</Link>.</>}</Empty>}
+      {s?.data ? children(s.data) : <Empty>{s ? (s.status === 'pending' ? 'Waiting for first sync.' : 'No data available for this username.') : <>Not connected. <Link href="/profile" prefetch={false} className="text-brand-700 hover:underline">Add your {p.label} username</Link>.</>}</Empty>}
     </Card>
   )
 }
 
 export default async function StatsPage() {
   const me = await requireUser()
-  const student = await loadStudent(me._id)
+  const student = await loadStudent(me._id, { refresh: true })
   if (!student) notFound()
   const { stats } = student
 

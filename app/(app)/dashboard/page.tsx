@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: 'Dashboard' }
 
 export default async function Dashboard() {
   const me = await requireUser()
-  const student = await loadStudent(me._id)
+  const student = await loadStudent(me._id, { refresh: true })
   if (!student) notFound()
   return <Overview student={student} self actions={<SyncButton />} />
 }

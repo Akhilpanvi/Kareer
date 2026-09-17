@@ -1,8 +1,6 @@
 import type { Day } from '@/lib/platforms/types'
 
-const LEVELS = ['bg-zinc-100', 'bg-brand-200', 'bg-brand-400', 'bg-brand-600', 'bg-brand-800']
-
-/** 53-week activity grid. Sequential single-hue ramp, per-cell hover title. */
+/** 53-week activity grid: CSS grid with short level classes (see globals.css); tooltips only on active days. */
 export function Heatmap({ days }: { days: Day }) {
   const today = new Date()
   const start = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - 364))
@@ -13,33 +11,26 @@ export function Heatmap({ days }: { days: Day }) {
     cells.push({ date: key, n: days[key] ?? 0 })
   }
   const max = Math.max(1, ...cells.map(c => c.n))
-  const level = (n: number) => (n ? Math.min(4, Math.ceil((n / max) * 4)) : 0)
-  const weeks = Array.from({ length: Math.ceil(cells.length / 7) }, (_, i) => cells.slice(i * 7, i * 7 + 7))
+  const months = cells.flatMap((c, i) =>
+    i % 7 === 0 && +c.date.slice(8) <= 7 && i < cells.length - 7
+      ? [{ col: i / 7 + 1, label: new Date(c.date).toLocaleString('en', { month: 'short', timeZone: 'UTC' }) }]
+      : [],
+  )
 
   return (
     <div>
-    <div className="overflow-x-auto pb-1" dir="rtl">
-      <div className="inline-flex flex-col gap-1.5" dir="ltr">
-        <div className="flex gap-[3px] pl-0 text-[10px] text-zinc-400">
-          {weeks.map((w, i) => {
-            const d = new Date(w[0].date)
-            const show = d.getUTCDate() <= 7 && i < weeks.length - 1
-            return <span key={i} className="w-[11px] overflow-visible whitespace-nowrap">{show ? d.toLocaleString('en', { month: 'short', timeZone: 'UTC' }) : ''}</span>
-          })}
-        </div>
-        <div className="flex gap-[3px]">
-          {weeks.map((w, i) => (
-            <div key={i} className="flex flex-col gap-[3px]">
-              {w.map(c => (
-                <span key={c.date} title={`${c.n} on ${c.date}`} className={`size-[11px] rounded-[2px] ${LEVELS[level(c.n)]}`} />
-              ))}
-            </div>
-          ))}
+      <div className="overflow-x-auto pb-1" dir="rtl">
+        <div className="inline-block" dir="ltr">
+          <div className="hm-months">
+            {months.map(m => <span key={m.col} style={{ gridColumn: m.col }}>{m.label}</span>)}
+          </div>
+          <div className="hm" role="img" aria-label={`${cells.filter(c => c.n).length} active days in the past year`}>
+            {cells.map((c, i) => (c.n ? <i key={i} className={`l${Math.min(4, Math.ceil((c.n / max) * 4))}`} title={`${c.n} on ${c.date}`} /> : <i key={i} />))}
+          </div>
         </div>
       </div>
-    </div>
-      <div className="mt-2 flex items-center gap-1 text-[10px] text-zinc-500">
-        Less {LEVELS.map(l => <span key={l} className={`size-[10px] rounded-[2px] ${l}`} />)} More
+      <div className="hm-legend mt-2 flex items-center gap-1 text-[10px] text-zinc-500">
+        Less <i /><i className="l1" /><i className="l2" /><i className="l3" /><i className="l4" /> More
       </div>
     </div>
   )

@@ -11,7 +11,7 @@ const security = [
 const config: NextConfig = {
   poweredByHeader: false,
   serverExternalPackages: ['mongoose'],
-  experimental: { serverActions: { allowedOrigins: ['kareers.klef.me'] } },
+  experimental: { serverActions: { allowedOrigins: ['kareers.klef.me'], bodySizeLimit: '4mb' } },
   headers: async () => [{ source: '/:path*', headers: security }],
 }
 
