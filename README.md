@@ -2,7 +2,7 @@
 
 Placement Cell platform for KL University — every student gets a login and a single profile showing coding activity, projects, certifications and a placement readiness score.
 
-**Live:** https://kareers.klef.me
+**Live:** https://kareer.klef.me
 
 Next.js 16 (App Router) · TypeScript · Tailwind CSS 4 · MongoDB + Mongoose · Vercel
 
@@ -73,8 +73,8 @@ npm run dev
 | `GITHUB_TOKEN` | classic token, no scopes — enables contribution calendar, 5000 req/h |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | seed-only; first admin account |
 | `RESEND_API_KEY` | enables "Forgot password?" emails (see below); without it the link is hidden in production |
-| `MAIL_FROM` | default `Kareers <no-reply@kareers.klef.me>` |
-| `APP_URL` | base URL used in reset links, default `https://kareers.klef.me` |
+| `MAIL_FROM` | default `Kareers <no-reply@kareer.klef.me>` |
+| `APP_URL` | base URL used in reset links, default `https://kareer.klef.me` |
 
 ### Seeding students
 
@@ -93,9 +93,9 @@ Columns: `regNo,name,email,branch,batch,campus,section,phone,github,leetcode,cod
 
 Cloudflare Email Routing only receives mail, so sending goes through [Resend](https://resend.com) (free: 3,000 emails/month).
 
-1. Resend → Domains → add `kareers.klef.me`.
-2. Cloudflare → `klef.me` → DNS: add the records Resend shows (MX + TXT for `send.kareers`, DKIM TXT `resend._domainkey.kareers`). Set them to **DNS only** (grey cloud). Nothing changes at Namecheap as long as it points `klef.me` at Cloudflare's nameservers.
-3. Optional: TXT `_dmarc.kareers` → `v=DMARC1; p=none;`
+1. Resend → Domains → add `kareer.klef.me`.
+2. Cloudflare → `klef.me` → DNS: add the records Resend shows (MX + TXT for `send.kareer`, DKIM TXT `resend._domainkey.kareer`). Set them to **DNS only** (grey cloud). Nothing changes at Namecheap as long as it points `klef.me` at Cloudflare's nameservers.
+3. Optional: TXT `_dmarc.kareer` → `v=DMARC1; p=none;`
 4. Once Resend shows *Verified*, create an API key (sending access) and set `RESEND_API_KEY` in Vercel, then redeploy.
 
 In development without a key, reset emails are printed to the server console.
@@ -104,6 +104,6 @@ In development without a key, reset emails are printed to the server console.
 
 1. Import the repository, framework preset Next.js.
 2. Add the environment variables above (Production).
-3. Add the domain `kareers.klef.me` and point a `CNAME` to `cname.vercel-dns.com`.
+3. Add the domain `kareer.klef.me` and point a `CNAME` to `cname.vercel-dns.com`.
 4. In MongoDB Atlas → Network Access, allow `0.0.0.0/0` (Vercel has no fixed IPs on the free tier).
 5. `vercel.json` schedules the refresh cron daily (Hobby plan limit).

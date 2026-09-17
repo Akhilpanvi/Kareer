@@ -5,7 +5,7 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://kareers.klef.me'),
+  metadataBase: new URL('https://kareer.klef.me'),
   title: { default: 'Kareers · KL University Placement Cell', template: '%s · Kareers' },
   description: 'Student career tracking and placement readiness for KL University.',
   robots: { index: false, follow: false },
