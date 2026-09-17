@@ -82,6 +82,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
             <p className="text-xs text-zinc-500">
               Columns: <code className="rounded bg-zinc-100 px-1 py-0.5">regNo,name,email,branch,batch,campus,section,phone,github,leetcode,codechef,codeforces,password</code>.
               Matching is by registration number — existing students are updated, new students are created. Leave <code className="rounded bg-zinc-100 px-1 py-0.5">password</code> blank to auto-generate one.
+              {' '}<a href="/sample-students.csv" download className="font-medium text-brand-700 hover:underline">Download a sample CSV</a>.
             </p>
             <Field label="CSV file"><input name="file" type="file" accept=".csv,text/csv" className="input file:mr-3 file:rounded-md file:border-0 file:bg-zinc-100 file:px-3 file:py-1.5 file:text-sm file:font-medium" /></Field>
             <Field label="or paste rows"><textarea name="csv" rows={4} maxLength={300000} className="input font-mono text-xs" placeholder="regNo,name,email,branch,batch,campus,section,phone,github,leetcode,codechef,codeforces,password" /></Field>
