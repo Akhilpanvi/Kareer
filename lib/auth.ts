@@ -27,17 +27,14 @@ export async function requireAdmin() {
   return u
 }
 
+const cookieOptions = (maxAge: number) => ({ httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' as const, path: '/', maxAge })
+
 export async function startSession(u: { _id: unknown; role: 'student' | 'admin'; sessionVersion: number }) {
   const token = await sign({ sub: String(u._id), role: u.role, v: u.sessionVersion })
-  ;(await cookies()).set(cookieName(), token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-    maxAge: MAX_AGE,
-  })
+  ;(await cookies()).set(cookieName(), token, cookieOptions(MAX_AGE))
 }
 
+// __Host- cookies are only cleared when the deletion repeats Secure and Path=/
 export async function endSession() {
-  ;(await cookies()).delete(cookieName())
+  ;(await cookies()).set(cookieName(), '', cookieOptions(0))
 }

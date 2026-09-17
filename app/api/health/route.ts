@@ -15,6 +15,7 @@ export async function GET() {
     SESSION_SECRET: (process.env.SESSION_SECRET?.length ?? 0) >= 32,
     CRON_SECRET: !!process.env.CRON_SECRET,
     SMTP: !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD),
+    GEMINI_API_KEY: !!process.env.GEMINI_API_KEY,
   }
   let database = 'ok'
   try {

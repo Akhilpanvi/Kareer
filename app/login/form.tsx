@@ -1,11 +1,12 @@
 'use client'
-import { useActionState } from 'react'
+import { useActionState, useTransition } from 'react'
 import { login } from '@/app/actions/auth'
 
 export function LoginForm() {
   const [state, run, pending] = useActionState(login, null)
+  const [, start] = useTransition()
   return (
-    <form action={run} className="mt-8 space-y-4">
+    <form onSubmit={e => (e.preventDefault(), start(() => run(new FormData(e.currentTarget))))} className="mt-8 space-y-4">
       <label className="block">
         <span className="label">Email</span>
         <input name="id" type="email" required maxLength={120} autoComplete="email" autoFocus className="input" placeholder="name@kluniversity.in" />
