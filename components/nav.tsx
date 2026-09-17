@@ -12,6 +12,7 @@ const STUDENT = [
 const ADMIN = [
   { href: '/admin', label: 'Students', icon: Users, match: (p: string) => p === '/admin' || p.startsWith('/admin/students') },
   { href: '/admin/team', label: 'Placement Cell Team', icon: ShieldCheck, match: (p: string) => p.startsWith('/admin/team') },
+  { href: '/profile', label: 'My Profile', icon: UserRound, match: (p: string) => p === '/profile' },
 ]
 
 export function Nav({ admin }: { admin: boolean }) {

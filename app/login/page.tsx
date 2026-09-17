@@ -1,9 +1,12 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
+import { resetEnabled } from '@/lib/mail'
 import { LoginForm } from './form'
 
 export const metadata: Metadata = { title: 'Sign in' }
 
-export default function LoginPage() {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ reset?: string }> }) {
+  const { reset } = await searchParams
   return (
     <main className="grid min-h-dvh lg:grid-cols-2">
       <section className="flex flex-col justify-between px-6 py-8 sm:px-12">
@@ -12,8 +15,11 @@ export default function LoginPage() {
         <div className="mx-auto w-full max-w-sm py-12">
           <h1 className="text-2xl font-semibold tracking-tight">Sign in to Kareers</h1>
           <p className="mt-1.5 text-sm text-zinc-500">Use the credentials issued by the Placement Cell.</p>
+          {reset && <p role="status" className="mt-6 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">Password updated. Sign in with your new password.</p>}
           <LoginForm />
-          <p className="mt-6 text-xs text-zinc-500">Forgot your password? Contact the Placement Cell to have it reset.</p>
+          <p className="mt-6 text-xs text-zinc-500">
+            {resetEnabled() ? <Link href="/forgot-password" prefetch={false} className="font-medium text-brand-700 hover:underline">Forgot your password?</Link> : 'Forgot your password? Contact the Placement Cell to have it reset.'}
+          </p>
         </div>
         <p className="text-xs text-zinc-400">© {new Date().getFullYear()} Koneru Lakshmaiah Education Foundation</p>
       </section>

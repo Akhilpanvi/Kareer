@@ -20,6 +20,9 @@ const userSchema = new Schema(
     failedLogins: { type: Number, default: 0 },
     lockedUntil: Date,
     lastLoginAt: Date,
+    resetTokenHash: { type: String, select: false, index: { sparse: true } },
+    resetTokenExpires: { type: Date, select: false },
+    resetRequestedAt: Date,
 
     branch: String,
     batch: String,

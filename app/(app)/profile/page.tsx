@@ -4,8 +4,8 @@ import { requireUser } from '@/lib/auth'
 import { loadStudent } from '@/lib/data'
 import { PLATFORMS } from '@/lib/platforms'
 import { updateProfile } from '@/app/actions/profile'
-import { changePassword } from '@/app/actions/auth'
 import { ActionForm } from '@/components/forms'
+import { ChangePassword } from '@/components/change-password'
 import { Card, Field, PageHeader } from '@/components/ui'
 import { StatusLine } from '@/components/overview'
 
@@ -13,6 +13,7 @@ export const metadata: Metadata = { title: 'Profile' }
 
 export default async function ProfilePage() {
   const me = await requireUser()
+  if (me.role === 'admin') return <AdminProfile name={me.name} email={me.email} />
   const s = await loadStudent(me._id)
   if (!s) notFound()
   const { user, stats } = s
@@ -62,14 +63,29 @@ export default async function ProfilePage() {
             </dl>
             <p className="mt-4 text-xs text-zinc-500">Managed by the Placement Cell. Contact them for corrections.</p>
           </Card>
-          <Card title="Change password">
-            <ActionForm action={changePassword} submit="Update password" reset>
-              <Field label="Current password"><input name="current" type="password" required autoComplete="current-password" className="input" /></Field>
-              <Field label="New password" hint="At least 10 characters."><input name="next" type="password" required minLength={10} autoComplete="new-password" className="input" /></Field>
-              <Field label="Confirm new password"><input name="confirm" type="password" required minLength={10} autoComplete="new-password" className="input" /></Field>
-            </ActionForm>
-          </Card>
+          <ChangePassword />
         </div>
+      </div>
+    </>
+  )
+}
+
+function AdminProfile({ name, email }: { name: string; email: string }) {
+  return (
+    <>
+      <PageHeader title="Profile" description="Your Placement Cell account." />
+      <div className="grid max-w-4xl gap-5 md:grid-cols-2">
+        <Card title="Account">
+          <dl className="space-y-3 text-sm">
+            {[['Name', name], ['Email', email], ['Role', 'Placement Cell admin']].map(([k, v]) => (
+              <div key={k} className="flex justify-between gap-4">
+                <dt className="text-zinc-500">{k}</dt>
+                <dd className="truncate text-right font-medium">{v}</dd>
+              </div>
+            ))}
+          </dl>
+        </Card>
+        <ChangePassword />
       </div>
     </>
   )

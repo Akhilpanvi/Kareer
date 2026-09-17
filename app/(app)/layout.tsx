@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { LogOut } from 'lucide-react'
 import { requireUser } from '@/lib/auth'
 import { logout } from '@/app/actions/auth'
@@ -19,11 +20,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <Nav admin={me.role === 'admin'} />
         </div>
         <div className="hidden items-center gap-3 border-t border-zinc-100 p-4 lg:flex">
-          <Avatar name={me.name} size="size-8" />
-          <div className="min-w-0 flex-1 text-sm leading-tight">
-            <div className="truncate font-medium">{me.name}</div>
-            <div className="truncate text-xs text-zinc-500">{me.role === 'admin' ? me.email : me.regNo}</div>
-          </div>
+          <Link href="/profile" prefetch={false} title="Profile & password" className="flex min-w-0 flex-1 items-center gap-3 rounded-lg hover:opacity-80">
+            <Avatar name={me.name} size="size-8" />
+            <div className="min-w-0 flex-1 text-sm leading-tight">
+              <div className="truncate font-medium">{me.name}</div>
+              <div className="truncate text-xs text-zinc-500">{me.role === 'admin' ? me.email : me.regNo}</div>
+            </div>
+          </Link>
           <form action={logout}>
             <button className="btn-ghost px-2" aria-label="Sign out" title="Sign out"><LogOut className="size-4" /></button>
           </form>

@@ -72,12 +72,33 @@ npm run dev
 | `CRON_SECRET` | random string; Vercel sends it to the cron route |
 | `GITHUB_TOKEN` | classic token, no scopes — enables contribution calendar, 5000 req/h |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | seed-only; first admin account |
+| `RESEND_API_KEY` | enables "Forgot password?" emails (see below); without it the link is hidden in production |
+| `MAIL_FROM` | default `Kareers <no-reply@kareers.klef.me>` |
+| `APP_URL` | base URL used in reset links, default `https://kareers.klef.me` |
 
 ### Seeding students
 
 `npm run seed -- <file.csv> [--reset-passwords]`
 
 Columns: `regNo,name,email,branch,batch,campus,section,phone,github,leetcode,codechef,codeforces,password` (see `data/students.example.csv`). Matching is by `regNo`, so re-running updates students in place. New students without a `password` get a random one; all issued credentials are written to `data/credentials-<timestamp>.csv` (gitignored, mode 600) — distribute securely and delete. Admins can also issue a temporary password per student from the admin panel.
+
+### Passwords
+
+- Students and admins change their own password from **Profile** (click your name in the sidebar).
+- Admins reset student passwords from the student page, and other admins from **Placement Cell Team**.
+- Locked out of every admin account? From a trusted machine with `MONGODB_URI`: `npm run reset-password -- <email|regNo>`.
+- **Forgot password?** emails a single-use link (30 min expiry, one request per account every 5 min, same response whether or not the account exists).
+
+#### Email setup (Resend + Cloudflare)
+
+Cloudflare Email Routing only receives mail, so sending goes through [Resend](https://resend.com) (free: 3,000 emails/month).
+
+1. Resend → Domains → add `kareers.klef.me`.
+2. Cloudflare → `klef.me` → DNS: add the records Resend shows (MX + TXT for `send.kareers`, DKIM TXT `resend._domainkey.kareers`). Set them to **DNS only** (grey cloud). Nothing changes at Namecheap as long as it points `klef.me` at Cloudflare's nameservers.
+3. Optional: TXT `_dmarc.kareers` → `v=DMARC1; p=none;`
+4. Once Resend shows *Verified*, create an API key (sending access) and set `RESEND_API_KEY` in Vercel, then redeploy.
+
+In development without a key, reset emails are printed to the server console.
 
 ## Deploy (Vercel)
 
