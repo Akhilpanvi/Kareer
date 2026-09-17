@@ -60,16 +60,29 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
       </div>
 
       <section className="card overflow-hidden">
+        <nav className="flex gap-1 border-b border-zinc-100 px-3 pt-3" aria-label="Filter by role">
+          {([['', 'All', admins + students], ['student', 'Students', students], ['admin', 'Admins', admins]] as const).map(([value, label, count]) => {
+            const active = (params.role ?? '') === value
+            return (
+              <Link
+                key={label}
+                href={qs({ role: value, page: '' })}
+                prefetch={false}
+                aria-current={active ? 'page' : undefined}
+                className={`flex items-center gap-2 rounded-t-lg border-b-2 px-3 py-2 text-sm font-medium transition ${active ? 'border-brand-600 text-brand-700' : 'border-transparent text-zinc-500 hover:text-zinc-900'}`}
+              >
+                {label}<span className={`rounded-md px-1.5 py-0.5 text-xs tabular-nums ${active ? 'bg-brand-50 text-brand-700' : 'bg-zinc-100 text-zinc-600'}`}>{fmt(count)}</span>
+              </Link>
+            )
+          })}
+        </nav>
+
         <form className="flex flex-wrap items-center gap-2 border-b border-zinc-100 p-3">
+          <input type="hidden" name="role" value={params.role ?? ''} />
           <label className="relative min-w-52 flex-1">
             <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-400" />
             <input name="q" defaultValue={params.q} placeholder="Search name, email, reg. no" className="input pl-9" aria-label="Search" />
           </label>
-          <select name="role" defaultValue={params.role ?? ''} className="input w-auto" aria-label="Role">
-            <option value="">All roles</option>
-            <option value="student">Students</option>
-            <option value="admin">Admins</option>
-          </select>
           <select name="status" defaultValue={params.status ?? ''} className="input w-auto" aria-label="Status">
             <option value="">Any status</option>
             <option value="active">Active</option>
@@ -85,7 +98,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
             <thead className="bg-zinc-50 text-left text-xs font-medium text-zinc-500">
               <tr>
                 <th className="px-4 py-2.5">User</th>
-                <th className="px-4 py-2.5">Role</th>
+                {!params.role && <th className="px-4 py-2.5">Role</th>}
                 <th className="px-4 py-2.5">Status</th>
                 <th className="px-4 py-2.5">Last sign-in</th>
                 <th className="px-4 py-2.5">Added</th>
@@ -105,13 +118,13 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
                       </span>
                     </div>
                   </td>
-                  <td className="px-4 py-2.5"><Badge tone={u.role === 'admin' ? 'brand' : 'zinc'}>{u.role === 'admin' ? 'Admin' : 'Student'}</Badge></td>
+                  {!params.role && <td className="px-4 py-2.5"><Badge tone={u.role === 'admin' ? 'brand' : 'zinc'}>{u.role === 'admin' ? 'Admin' : 'Student'}</Badge></td>}
                   <td className="px-4 py-2.5">{status(u)}</td>
                   <td className="px-4 py-2.5 text-zinc-600" title={u.lastLoginAt?.toLocaleString('en-IN')}>{u.lastLoginAt ? ago(u.lastLoginAt) : 'Never'}</td>
                   <td className="px-4 py-2.5 text-zinc-600">{ago(u.createdAt)}</td>
                 </tr>
               ))}
-              {!rows.length && <tr><td colSpan={5} className="px-4 py-10 text-center text-zinc-500">No users match these filters.</td></tr>}
+              {!rows.length && <tr><td colSpan={params.role ? 4 : 5} className="px-4 py-10 text-center text-zinc-500">No users match these filters.</td></tr>}
             </tbody>
           </table>
         </div>
