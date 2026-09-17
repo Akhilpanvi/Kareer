@@ -23,7 +23,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
 
   const [rows, total, [summary], branches, batches] = await Promise.all([
     User.find(filter).sort(sortOf(params.sort)).skip((page - 1) * PAGE).limit(PAGE)
-      .select({ name: 1, regNo: 1, branch: 1, batch: 1, score: 1, metrics: 1, active: 1, 'projects._id': 1, 'certifications._id': 1 }).lean(),
+      .select({ name: 1, regNo: 1, branch: 1, batch: 1, score: 1, metrics: 1, active: 1, emailVerified: 1, 'projects._id': 1, 'certifications._id': 1 }).lean(),
     User.countDocuments(filter),
     User.aggregate([
       { $match: { role: 'student' } },
@@ -149,7 +149,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                         <Avatar name={s.name} size="size-8" />
                         <span className="min-w-0">
                           <span className="block truncate font-medium text-zinc-900 hover:text-brand-700">{s.name}</span>
-                          <span className="block text-xs text-zinc-500">{s.regNo}{!s.active && <> · <Badge tone="red">Disabled</Badge></>}</span>
+                          <span className="block text-xs text-zinc-500">{s.regNo}{!s.active && <> · <Badge tone="red">Disabled</Badge></>}{s.emailVerified === false && <> · <Badge tone="amber">Unverified</Badge></>}</span>
                         </span>
                       </Link>
                     </td>

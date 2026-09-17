@@ -26,6 +26,9 @@ export async function sendMail({ to, subject, text, html }: { to: string; subjec
   await g.smtp.sendMail({ from: process.env.SMTP_FROM ?? `Kloop <${process.env.SMTP_USER}>`, to, subject, text, html })
 }
 
+export const registrationEnabled = () => process.env.REGISTRATION !== 'off' && resetEnabled()
+export const registrationDomains = () => (process.env.REGISTRATION_DOMAINS ?? 'kluniversity.in').split(',').map(d => d.trim().toLowerCase()).filter(Boolean)
+
 const esc = (s: string) => s.replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`)
 
 export function resetEmail(name: string, url: string) {
@@ -38,6 +41,21 @@ export function resetEmail(name: string, url: string) {
   <p>Someone asked to reset the password for your Kloop account. This link expires in 30 minutes.</p>
   <p style="margin:28px 0"><a href="${esc(url)}" style="background:#a41c24;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600;display:inline-block">Choose a new password</a></p>
   <p style="font-size:13px;color:#71717a">If you didn't ask for this, ignore this email — your password won't change.</p>
+  <p style="font-size:12px;color:#a1a1aa;margin-top:32px">KL University · kloop.klef.me</p>
+</div>`,
+  }
+}
+
+export function verifyEmail(name: string, url: string) {
+  return {
+    subject: 'Verify your Kloop account',
+    text: `Hi ${name},\n\nConfirm your email to finish creating your Kloop account. The link expires in 24 hours:\n\n${url}\n\nIf you didn't sign up, ignore this email.\n\nPlacement Cell · KL University`,
+    html: `<div style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#18181b">
+  <p style="font-size:15px;font-weight:600;margin:0 0 20px">Kloop · Placement Cell</p>
+  <p>Hi ${esc(name)},</p>
+  <p>Confirm your email to finish creating your Kloop account. This link expires in 24 hours.</p>
+  <p style="margin:28px 0"><a href="${esc(url)}" style="background:#a41c24;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600;display:inline-block">Verify email</a></p>
+  <p style="font-size:13px;color:#71717a">If you didn't sign up, ignore this email.</p>
   <p style="font-size:12px;color:#a1a1aa;margin-top:32px">KL University · kloop.klef.me</p>
 </div>`,
   }

@@ -6,8 +6,8 @@ import { after } from 'next/server'
 import { db } from '@/lib/db'
 import { currentUser, endSession, requireAdmin, startSession } from '@/lib/auth'
 import { hashPassword, passwordIssue, verifyPassword } from '@/lib/password'
-import { EMAIL, str, type State } from '@/lib/form'
-import { appUrl, resetEmail, resetEnabled, sendMail } from '@/lib/mail'
+import { EMAIL, REGNO, str, type State } from '@/lib/form'
+import { appUrl, registrationDomains, registrationEnabled, resetEmail, resetEnabled, sendMail, verifyEmail } from '@/lib/mail'
 import { User } from '@/models/User'
 
 const LOCK_AFTER = 5
@@ -27,10 +27,11 @@ export async function login(_: State, fd: FormData): Promise<State> {
   try {
     await db()
     const user = await User.findOne({ email: id.toLowerCase() })
-      .select('+passwordHash role active sessionVersion failedLogins lockedUntil mustChangePassword')
+      .select('+passwordHash role active sessionVersion failedLogins lockedUntil mustChangePassword emailVerified')
     if (user?.lockedUntil && user.lockedUntil > new Date()) return { error: 'Too many failed attempts. Try again in 15 minutes.' }
 
     const valid = await verifyPassword(password, user?.passwordHash)
+    if (user && valid && user.emailVerified === false) return { error: 'Verify your email first — check your inbox for the Kloop verification link, or register again to resend it.' }
     if (!user || !valid || !user.active) {
       if (user)
         await User.updateOne(
@@ -42,7 +43,7 @@ export async function login(_: State, fd: FormData): Promise<State> {
       return { error: user && valid && !user.active ? 'This account is disabled. Contact the Placement Cell.' : 'Invalid credentials.' }
     }
 
-    await User.updateOne({ _id: user._id }, { $set: { failedLogins: 0, lastLoginAt: new Date() }, $unset: { lockedUntil: 1 } })
+    after(() => User.updateOne({ _id: user._id }, { $set: { failedLogins: 0, lastLoginAt: new Date() }, $unset: { lockedUntil: 1 } }))
     await startSession({ _id: user._id, role: user.role as 'student' | 'admin', sessionVersion: user.sessionVersion })
     to = user.mustChangePassword ? '/change-password' : user.role === 'admin' ? '/admin' : '/dashboard'
   } catch (e) {
@@ -157,4 +158,59 @@ export async function setFirstPassword(_: State, fd: FormData): Promise<State> {
   const result = await changePassword(null, fd)
   if (result?.error) return result
   redirect(me.role === 'admin' ? '/admin' : '/dashboard')
+}
+
+const VERIFY_TTL = 24 * 3600_000
+const VERIFY_GAP = 5 * 60_000
+
+export async function register(_: State, fd: FormData): Promise<State> {
+  if (!registrationEnabled()) return { error: 'Registration is closed. Contact the Placement Cell.' }
+  const name = str(fd, 'name', 120)
+  const regNo = str(fd, 'regNo', 20).toUpperCase()
+  const email = str(fd, 'email', 120).toLowerCase()
+  const [password, confirm] = ['password', 'confirm'].map(k => String(fd.get(k) ?? ''))
+  if (!name) return { error: 'Enter your full name.' }
+  if (!REGNO.test(regNo)) return { error: 'Enter a valid registration number.' }
+  const domains = registrationDomains()
+  if (!EMAIL.test(email) || !domains.includes(email.split('@')[1])) return { error: `Use your university email (${domains.map(d => '@' + d).join(', ')}).` }
+  const issue = passwordIssue(password)
+  if (issue) return { error: issue }
+  if (password !== confirm) return { error: 'Passwords do not match.' }
+
+  await db()
+  const [byEmail, byReg] = await Promise.all([
+    User.findOne({ email }).select('regNo emailVerified verifySentAt').lean(),
+    User.findOne({ regNo }).select('email').lean(),
+  ])
+  if (byEmail && byEmail.emailVerified !== false) return { error: 'An account already exists for this email. Sign in, or use "Forgot password".' }
+  if (byReg && byReg.email !== email) return { error: 'This registration number is already registered. Contact the Placement Cell if this is yours.' }
+  if (byEmail?.verifySentAt && Date.now() - +byEmail.verifySentAt < VERIFY_GAP) return { ok: `We already sent a verification link to ${email}. Check your inbox and spam folder.` }
+
+  const token = randomBytes(32).toString('base64url')
+  const fields = {
+    name, regNo, email, role: 'student', emailVerified: false, mustChangePassword: false,
+    branch: str(fd, 'branch', 40) || undefined, batch: str(fd, 'batch', 20) || undefined,
+    passwordHash: await hashPassword(password),
+    verifyTokenHash: sha256(token), verifyExpires: new Date(Date.now() + VERIFY_TTL), verifySentAt: new Date(),
+  }
+  try {
+    await User.updateOne({ email, emailVerified: false }, { $set: fields }, { upsert: true })
+  } catch (e) {
+    if ((e as { code?: number }).code === 11000) return { error: 'An account with this email or registration number already exists.' }
+    throw e
+  }
+  const mail = verifyEmail(name, `${appUrl()}/verify-email?token=${token}`)
+  after(() => sendMail({ to: email, ...mail }).catch(e => console.error('verification email failed:', e)))
+  return { ok: `Almost done — we sent a verification link to ${email}. It expires in 24 hours.` }
+}
+
+export async function confirmEmail(_: State, fd: FormData): Promise<State> {
+  const token = str(fd, 'token', 100)
+  await db()
+  const user = await User.findOneAndUpdate(
+    { verifyTokenHash: sha256(token), verifyExpires: { $gt: new Date() }, emailVerified: false },
+    { $set: { emailVerified: true }, $unset: { verifyTokenHash: 1, verifyExpires: 1, verifySentAt: 1 } },
+  ).select('_id').lean()
+  if (!token || !user) return { error: 'This verification link is invalid or expired. Register again to get a new one.' }
+  redirect('/login?verified=1')
 }

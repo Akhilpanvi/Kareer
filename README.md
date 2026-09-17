@@ -86,6 +86,10 @@ Columns: `regNo,name,email,branch,batch,campus,section,phone,github,leetcode,cod
 
 Students get a read-only coach grounded in their own cached profile (skills, projects, coding stats, profile strength). It never sees email, phone, registration number or other students, and has no tools, so it cannot change records. `GEMINI_API_KEY` stays server-side; each student gets `GEMINI_DAILY_LIMIT` questions/day (default 20) with a 4 s gap, enforced atomically in MongoDB. Without a key the Coach button is hidden.
 
+### Student registration
+
+Students can create an account at `/register` with a university email (`REGISTRATION_DOMAINS`, default `kluniversity.in`). The account stays inactive until the emailed link is confirmed (button click, so link scanners can't consume it). One verification email per address every 5 minutes; unverified sign-ups are removed after 7 days by the daily cron. Set `REGISTRATION=off` to close it. Requires SMTP in production.
+
 ### Passwords
 
 - Students and admins change their own password from **Profile** (click your name in the sidebar).
@@ -117,4 +121,4 @@ In development without SMTP settings, reset emails are printed to the server con
 2. Add the environment variables above (Production).
 3. Add the domain `kloop.klef.me` and point a `CNAME` to `cname.vercel-dns.com`.
 4. In MongoDB Atlas → Network Access, allow `0.0.0.0/0` (Vercel has no fixed IPs on the free tier).
-5. `vercel.json` schedules the refresh cron daily (Hobby plan limit).
+5. `vercel.json` pins functions to `bom1` (Mumbai, next to the Atlas cluster in `ap-south-1`) and schedules the refresh cron daily (Hobby plan limit).
