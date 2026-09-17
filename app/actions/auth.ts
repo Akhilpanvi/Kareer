@@ -12,31 +12,42 @@ import { User } from '@/models/User'
 const LOCK_AFTER = 5
 const LOCK_MS = 15 * 60_000
 
+function unavailable(where: string, e: unknown): State {
+  console.error(`${where} failed:`, e)
+  return { error: 'Sign-in is temporarily unavailable. Please try again shortly.' }
+}
+
 export async function login(_: State, fd: FormData): Promise<State> {
   const id = str(fd, 'id', 120)
   const password = String(fd.get('password') ?? '').slice(0, 128)
   if (!id || !password) return { error: 'Enter your registration number or email and password.' }
 
-  await db()
-  const user = await User.findOne(id.includes('@') ? { email: id.toLowerCase() } : { regNo: id.toUpperCase() })
-    .select('+passwordHash role active sessionVersion failedLogins lockedUntil')
-  if (user?.lockedUntil && user.lockedUntil > new Date()) return { error: 'Too many failed attempts. Try again in 15 minutes.' }
+  let role: string
+  try {
+    await db()
+    const user = await User.findOne(id.includes('@') ? { email: id.toLowerCase() } : { regNo: id.toUpperCase() })
+      .select('+passwordHash role active sessionVersion failedLogins lockedUntil')
+    if (user?.lockedUntil && user.lockedUntil > new Date()) return { error: 'Too many failed attempts. Try again in 15 minutes.' }
 
-  const valid = await verifyPassword(password, user?.passwordHash)
-  if (!user || !valid || !user.active) {
-    if (user)
-      await User.updateOne(
-        { _id: user._id },
-        user.failedLogins + 1 >= LOCK_AFTER
-          ? { $set: { failedLogins: 0, lockedUntil: new Date(Date.now() + LOCK_MS) } }
-          : { $inc: { failedLogins: 1 } },
-      )
-    return { error: user && valid && !user.active ? 'This account is disabled. Contact the Placement Cell.' : 'Invalid credentials.' }
+    const valid = await verifyPassword(password, user?.passwordHash)
+    if (!user || !valid || !user.active) {
+      if (user)
+        await User.updateOne(
+          { _id: user._id },
+          user.failedLogins + 1 >= LOCK_AFTER
+            ? { $set: { failedLogins: 0, lockedUntil: new Date(Date.now() + LOCK_MS) } }
+            : { $inc: { failedLogins: 1 } },
+        )
+      return { error: user && valid && !user.active ? 'This account is disabled. Contact the Placement Cell.' : 'Invalid credentials.' }
+    }
+
+    await User.updateOne({ _id: user._id }, { $set: { failedLogins: 0, lastLoginAt: new Date() }, $unset: { lockedUntil: 1 } })
+    await startSession({ _id: user._id, role: user.role as 'student' | 'admin', sessionVersion: user.sessionVersion })
+    role = user.role
+  } catch (e) {
+    return unavailable('login', e)
   }
-
-  await User.updateOne({ _id: user._id }, { $set: { failedLogins: 0, lastLoginAt: new Date() }, $unset: { lockedUntil: 1 } })
-  await startSession({ _id: user._id, role: user.role as 'student' | 'admin', sessionVersion: user.sessionVersion })
-  redirect(user.role === 'admin' ? '/admin' : '/dashboard')
+  redirect(role === 'admin' ? '/admin' : '/dashboard')
 }
 
 export async function logout() {
@@ -71,17 +82,21 @@ export async function requestReset(_: State, fd: FormData): Promise<State> {
   if (!id) return { error: 'Enter your registration number or email.' }
   const sent = { ok: 'If an account matches, we have emailed a reset link to its address. The link expires in 30 minutes.' }
 
-  await db()
-  const user = await User.findOne(id.includes('@') ? { email: id.toLowerCase() } : { regNo: id.toUpperCase() }).select('name email active resetRequestedAt').lean()
-  if (!user?.active || (user.resetRequestedAt && Date.now() - +user.resetRequestedAt < RESET_GAP)) return sent
+  try {
+    await db()
+    const user = await User.findOne(id.includes('@') ? { email: id.toLowerCase() } : { regNo: id.toUpperCase() }).select('name email active resetRequestedAt').lean()
+    if (!user?.active || (user.resetRequestedAt && Date.now() - +user.resetRequestedAt < RESET_GAP)) return sent
 
-  const token = randomBytes(32).toString('base64url')
-  await User.updateOne(
-    { _id: user._id },
-    { $set: { resetTokenHash: sha256(token), resetTokenExpires: new Date(Date.now() + RESET_TTL), resetRequestedAt: new Date() } },
-  )
-  const mail = resetEmail(user.name, `${appUrl()}/reset-password?token=${token}`)
-  after(() => sendMail({ to: user.email, ...mail }).catch(e => console.error('reset email failed:', e)))
+    const token = randomBytes(32).toString('base64url')
+    await User.updateOne(
+      { _id: user._id },
+      { $set: { resetTokenHash: sha256(token), resetTokenExpires: new Date(Date.now() + RESET_TTL), resetRequestedAt: new Date() } },
+    )
+    const mail = resetEmail(user.name, `${appUrl()}/reset-password?token=${token}`)
+    after(() => sendMail({ to: user.email, ...mail }).catch(e => console.error('reset email failed:', e)))
+  } catch (e) {
+    return unavailable('reset request', e)
+  }
   return sent
 }
 
