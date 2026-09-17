@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --color-brand-50: #fbf3f3;
+  --color-brand-100: #f7e4e5;
+  --color-brand-200: #efc6c8;
+  --color-brand-300: #e19ca0;
+  --color-brand-400: #cf6068;
+  --color-brand-500: #bb3139;
+  --color-brand-600: #a41c24;
+  --color-brand-700: #8a1820;
+  --color-brand-800: #6f151b;
+  --color-brand-900: #5c1519;
+  --color-ink-900: #141414;
+  --color-easy: #1baf7a;
+  --color-medium: #eda100;
+  --color-hard: #e34948;
+}
+
+:root { color-scheme: light; }
+body { @apply bg-zinc-50 text-zinc-900 antialiased; }
+
+@utility card { @apply rounded-xl border border-zinc-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)]; }
+@utility input { @apply w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm shadow-xs outline-none transition placeholder:text-zinc-400 focus:border-brand-500 focus:ring-3 focus:ring-brand-100 disabled:bg-zinc-50 disabled:text-zinc-500; }
+@utility btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition disabled:opacity-60 cursor-pointer disabled:cursor-default; }
+@utility btn-primary { @apply btn bg-brand-600 text-white shadow-xs hover:bg-brand-700; }
+@utility btn-outline { @apply btn border border-zinc-300 bg-white text-zinc-700 shadow-xs hover:bg-zinc-50; }
+@utility btn-ghost { @apply btn text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900; }
+@utility label { @apply mb-1.5 block text-sm font-medium text-zinc-700; }
