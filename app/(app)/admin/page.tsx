@@ -4,12 +4,13 @@ import { Download, Search, Trash2, UserRoundX, UserRoundCheck } from 'lucide-rea
 import { requireAdmin } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { filterOf, PAGE, sortOf, type Params } from '@/lib/admin'
-import { fmt } from '@/lib/format'
-import { PLATFORMS } from '@/lib/platforms'
+import { ago, fmt } from '@/lib/format'
+import { COHORT_COOLDOWN, CONCURRENCY, COOLDOWN, PER_RUN, PLATFORMS, TTL, syncStatus } from '@/lib/platforms'
 import { bulkImport, bulkStudents, createStudent } from '@/app/actions/admin'
 import { ActionForm } from '@/components/forms'
 import { ConfirmSubmit, SelectAll } from '@/components/bulk'
 import { Avatar, Badge, Card, Disclosure, Field, Meter, PageHeader, Stat } from '@/components/ui'
+import { SyncEveryone } from './sync'
 import { User } from '@/models/User'
 
 export const metadata: Metadata = { title: 'Placement Cell' }
@@ -32,6 +33,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     User.distinct('branch', { role: 'student' }),
     User.distinct('batch', { role: 'student' }),
   ])
+  const sync = await syncStatus()
+  const mins = (ms: number) => `${Math.round(ms / 60_000)} min`
   const pages = Math.max(1, Math.ceil(total / PAGE))
   const qs = (patch: Params) => '?' + new URLSearchParams(Object.entries({ ...params, ...patch }).filter(([, v]) => v) as [string, string][]).toString()
   const backHref = `/admin${qs({ msg: '' })}`
@@ -50,6 +53,26 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         <Stat label="Strong profiles" value={fmt(summary?.ready ?? 0)} hint="profile strength ≥ 60" />
         <Stat label="LeetCode connected" value={fmt(summary?.connected ?? 0)} hint={summary?.n ? `${Math.round((summary.connected / summary.n) * 100)}% of students` : undefined} />
       </div>
+
+      <Card title="Data sync" className="mb-5" action={<SyncEveryone />}>
+        <dl className="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            ['Refresh interval', TTL >= 3600_000 ? `every ${Math.round(TTL / 3600_000)} h` : mins(TTL), 'how old platform data may get'],
+            ['Student cooling period', mins(COOLDOWN), 'between manual syncs per student'],
+            ['Cohort cooling period', mins(COHORT_COOLDOWN), 'between full sweeps'],
+            ['Last cohort sync', sync.lastAt ? ago(sync.lastAt) : 'never', sync.last ? `${sync.last.refreshed} records · ${sync.last.users} students` : 'runs on admin sign-in and daily'],
+          ].map(([k, v, hint]) => (
+            <div key={k}>
+              <dt className="text-xs text-zinc-500">{k}</dt>
+              <dd className="mt-0.5 font-semibold text-zinc-900">{v}</dd>
+              <dd className="text-xs text-zinc-500">{hint}</dd>
+            </div>
+          ))}
+        </dl>
+        <p className="mt-4 text-xs text-zinc-500">
+          {fmt(sync.stale)} of {fmt(sync.total)} platform records are due a refresh. Sweeps run on admin sign-in, on the daily schedule and when you press Sync now, oldest first, {CONCURRENCY} at a time, up to {fmt(PER_RUN)} records per run.
+        </p>
+      </Card>
 
       <Card title="Add students" className="mb-5">
         <Disclosure label="Add one student">

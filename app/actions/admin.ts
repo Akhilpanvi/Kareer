@@ -6,7 +6,7 @@ import { requireAdmin } from '@/lib/auth'
 import { parseCsv } from '@/lib/csv'
 import { attempt, EMAIL, HANDLE, Invalid, REGNO, str, type State } from '@/lib/form'
 import { hashPassword, passwordIssue, tempPassword } from '@/lib/password'
-import { PLATFORM_KEYS, refreshUser, syncAllHandles, syncHandles } from '@/lib/platforms'
+import { cohortSync, PLATFORM_KEYS, refreshUser, syncAllHandles, syncHandles } from '@/lib/platforms'
 import { PlatformStat } from '@/models/PlatformStat'
 import { User } from '@/models/User'
 
@@ -46,6 +46,15 @@ export async function setActive(id: string, active: boolean): Promise<State> {
   await User.updateOne({ _id: id, role: 'student' }, { $set: { active }, $inc: { sessionVersion: 1 } })
   touched(id)
   return { ok: active ? 'Account enabled.' : 'Account disabled.' }
+}
+
+export async function syncEveryone(): Promise<State> {
+  await requireAdmin()
+  const r = await cohortSync(45_000)
+  touched()
+  return r
+    ? { ok: r.refreshed ? `Synced ${r.refreshed} record${r.refreshed === 1 ? '' : 's'} across ${r.users} student${r.users === 1 ? '' : 's'}${r.remaining ? `, ${r.remaining} left for the next run` : ''}.` : 'Everything is already up to date.' }
+    : { error: 'A cohort sync ran recently. Try again later.' }
 }
 
 export async function refreshStudent(id: string): Promise<State> {

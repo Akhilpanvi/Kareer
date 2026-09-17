@@ -8,6 +8,7 @@ import { currentUser, endSession, requireAdmin, startSession } from '@/lib/auth'
 import { hashPassword, passwordIssue, verifyPassword } from '@/lib/password'
 import { EMAIL, str, type State } from '@/lib/form'
 import { appUrl, resetEmail, resetEnabled, sendMail } from '@/lib/mail'
+import { cohortSync } from '@/lib/platforms'
 import { User } from '@/models/User'
 
 const LOCK_AFTER = 5
@@ -46,6 +47,7 @@ export async function login(_: State, fd: FormData): Promise<State> {
     after(() => User.updateOne({ _id: user._id }, { $set: { failedLogins: 0, lastLoginAt: new Date() }, $unset: { lockedUntil: 1 } }))
     await startSession({ _id: user._id, role: user.role as 'student' | 'admin', sessionVersion: user.sessionVersion })
     to = user.mustChangePassword ? '/change-password' : user.role === 'admin' ? '/admin' : '/dashboard'
+    if (user.role === 'admin' && !user.mustChangePassword) after(() => cohortSync(20_000))
   } catch (e) {
     return unavailable('login', e)
   }

@@ -2,6 +2,7 @@ import { Types } from 'mongoose'
 import { db } from '../db'
 import { profileStrength } from '../score'
 import { PlatformStat } from '@/models/PlatformStat'
+import { Setting } from '@/models/Setting'
 import { User } from '@/models/User'
 import { github } from './github'
 import { leetcode } from './leetcode'
@@ -13,8 +14,14 @@ import type { Fetched, Platform } from './types'
 export const PLATFORMS: Record<string, Platform> = { github, leetcode, codechef, codeforces }
 export const PLATFORM_KEYS = Object.keys(PLATFORMS)
 
-export const TTL = 12 * 3600_000
-export const COOLDOWN = 10 * 60_000
+const num = (v: string | undefined, fallback: number) => (Number(v) > 0 ? Number(v) : fallback)
+
+// Sync settings (env-tunable, shown in the admin panel)
+export const TTL = num(process.env.SYNC_INTERVAL_HOURS, 12) * 3600_000        // how old data may get before a refresh
+export const COOLDOWN = num(process.env.SYNC_COOLDOWN_MINUTES, 10) * 60_000   // per-student manual sync cooling period
+export const COHORT_COOLDOWN = num(process.env.SYNC_COHORT_COOLDOWN_MINUTES, 30) * 60_000
+export const CONCURRENCY = num(process.env.SYNC_CONCURRENCY, 4)               // platform requests in flight
+export const PER_RUN = num(process.env.SYNC_PER_RUN, 200)                     // records per sweep
 
 const saved = (r: Fetched, now: Date) => ({
   $set: { status: 'ok', data: r.data, metrics: r.metrics, fetchedAt: now, checkedAt: now, error: null },
@@ -106,7 +113,7 @@ export async function refreshUser(userId: Types.ObjectId | string, force = false
 }
 
 /** Cron: refresh the stalest stats across all users within a time budget. */
-export async function refreshStalest(budgetMs = 50_000, limit = 200) {
+export async function refreshStalest(budgetMs = 50_000, limit = PER_RUN) {
   await db()
   const started = Date.now()
   const edge = new Date(Date.now() - TTL)
@@ -114,12 +121,37 @@ export async function refreshStalest(budgetMs = 50_000, limit = 200) {
     .sort({ checkedAt: 1 }).limit(limit).select('user platform handle').lean()
   const touched = new Set<string>()
   let done = 0
-  for (let i = 0; i < stale.length && Date.now() - started < budgetMs; i += 4) {
-    const batch = await claim(stale.slice(i, i + 4), edge)
+  for (let i = 0; i < stale.length && Date.now() - started < budgetMs; i += CONCURRENCY) {
+    const batch = await claim(stale.slice(i, i + CONCURRENCY), edge)
     await Promise.all(batch.map(refreshStat))
     batch.forEach(s => touched.add(String(s.user)))
     done += batch.length
   }
   for (const id of touched) await recompute(id)
   return { refreshed: done, users: touched.size, remaining: stale.length - done }
+}
+
+/** Cohort sweep behind a shared cooling period, so concurrent admin sign-ins don't stack up. */
+export async function cohortSync(budgetMs: number, force = false) {
+  await db()
+  const now = new Date()
+  const lock = await Setting.findOneAndUpdate(
+    { key: 'cohortSync', ...(force ? {} : { $or: [{ at: { $exists: false } }, { at: { $lt: new Date(now.getTime() - COHORT_COOLDOWN) } }] }) },
+    { $set: { at: now } },
+    { upsert: true, returnDocument: 'after' },
+  ).lean().catch(() => null)
+  if (!lock) return null
+  const result = await refreshStalest(budgetMs)
+  await Setting.updateOne({ key: 'cohortSync' }, { $set: { at: new Date(), value: result } })
+  return result
+}
+
+export async function syncStatus() {
+  await db()
+  const [last, stale, total] = await Promise.all([
+    Setting.findOne({ key: 'cohortSync' }).lean(),
+    PlatformStat.countDocuments({ checkedAt: { $lt: new Date(Date.now() - TTL) } }),
+    PlatformStat.countDocuments(),
+  ])
+  return { lastAt: last?.at, last: last?.value as { refreshed: number; users: number } | undefined, stale, total }
 }

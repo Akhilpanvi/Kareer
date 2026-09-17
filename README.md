@@ -34,6 +34,10 @@ proxy.ts                    route guard (optimistic; pages re-verify)
 - **User** — account (role `student | admin`), institutional fields, editable profile, `handles` map (`platform → username`), embedded skills/projects/certifications/achievements, and denormalised `metrics` + `score` so the admin list is a single indexed query.
 - **PlatformStat** — one document per `(user, platform)`: status, cached payload, headline metrics, 90-point `history` for progress trends, `fetchedAt` / `checkedAt`.
 
+### Sync schedule
+
+Platform data is cached in MongoDB and refreshed when it is older than `SYNC_INTERVAL_HOURS` (12 h). Sweeps run when an admin signs in (in the background, behind a `SYNC_COHORT_COOLDOWN_MINUTES` cooling period so repeat sign-ins don't stack), on the daily Vercel cron, and from **Sync now** in the admin Data sync card. Each sweep takes the stalest records first, `SYNC_CONCURRENCY` at a time, up to `SYNC_PER_RUN` per run, within the time the run allows. A student's own **Sync now** is limited to once every `SYNC_COOLDOWN_MINUTES` (10 min). All five are env-tunable and shown in the admin panel.
+
 ### External data & free-tier limits
 
 Platform data is never fetched on page render. Pages read the MongoDB cache; if a record is older than 12 h, a refresh runs *after* the response (`after()`). Students can force a sync at most every 10 minutes. A daily Vercel cron refreshes the stalest records within a 50 s budget, 4 requests at a time.

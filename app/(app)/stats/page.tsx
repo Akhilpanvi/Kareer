@@ -5,7 +5,7 @@ import { ExternalLink, Star } from 'lucide-react'
 import { requireUser } from '@/lib/auth'
 import { loadStudent, type Student } from '@/lib/data'
 import { ago, fmt } from '@/lib/format'
-import { PLATFORMS } from '@/lib/platforms'
+import { COOLDOWN, PLATFORMS, TTL } from '@/lib/platforms'
 import { Bars, Difficulty, Heatmap, Trend } from '@/components/charts'
 import { StatusLine } from '@/components/overview'
 import { Badge, Card, Empty, PageHeader } from '@/components/ui'
@@ -54,7 +54,7 @@ export default async function StatsPage() {
 
   return (
     <>
-      <PageHeader title="Platform Statistics" description="Detailed coding profile data, cached and refreshed automatically."><SyncButton /></PageHeader>
+      <PageHeader title="Platform Statistics" description={`Cached platform data, refreshed every ${Math.round(TTL / 3600_000)} h automatically. Sync now is available every ${Math.round(COOLDOWN / 60_000)} min.`}><SyncButton /></PageHeader>
       <div className="space-y-5">
         <Section platform="leetcode" s={stats.leetcode}>
           {lc => (
