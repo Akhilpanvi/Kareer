@@ -66,3 +66,21 @@ async function call(context: string, turns: Turn[]) {
   if (!text) throw new Error(`Gemini returned no text (${data.candidates?.[0]?.finishReason ?? data.promptFeedback?.blockReason ?? 'unknown'})`)
   return text.slice(0, 2500)
 }
+
+/** Structured JSON call used by shortlisting. */
+export async function askGeminiJson<T>(prompt: string, schema: object): Promise<T> {
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${process.env.GEMINI_MODEL ?? 'gemini-3.6-flash'}:generateContent`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY! },
+    body: JSON.stringify({
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: 'application/json', responseSchema: schema, maxOutputTokens: 1500, thinkingConfig: { thinkingLevel: 'low' } },
+    }),
+    signal: AbortSignal.timeout(25_000),
+    cache: 'no-store',
+  })
+  if (!res.ok) throw new Error(`Gemini responded ${res.status}`)
+  const data = await res.json()
+  const text = (data.candidates?.[0]?.content?.parts ?? []).map((p: { text?: string }) => p.text ?? '').join('')
+  return JSON.parse(text) as T
+}

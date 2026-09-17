@@ -101,6 +101,10 @@ Any signed-in student missing a required username, holding a username that no lo
 
 Every student gets `/{slug}` from their name (`Akhil_Panvi`, reg-no tail appended on clashes) at `kloop.klef.me/profile/<slug>` — a recruiter-facing portfolio with headline, skills, projects, certifications, achievements, coding stats and links, never email or phone. Students see the link on **Profile** with a visibility toggle (`publicProfile`); the page is indexable, the rest of the app is not.
 
+### AI shortlisting
+
+**Admin → AI Shortlisting**: paste a job description. One Gemini call turns the JD into structured criteria (skills, CGPA / Class X / Class XII cut-offs, backlogs, branches, batch); ranking then happens entirely in MongoDB, so no student data is sent to the AI and every score is explainable (matched skills, gaps, eligibility). Manual cut-offs override the JD. Results export to CSV (opens in Excel) via a signed, 1-hour link; the export re-runs the same deterministic ranking. Limited to `GEMINI_DAILY_LIMIT` runs per admin per day.
+
 ### Users panel
 
 **Users** lists every admin and student with role, status (Active / Not registered / Temporary password / Disabled) and last sign-in, filterable by role and status.

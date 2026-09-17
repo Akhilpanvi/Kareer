@@ -21,6 +21,14 @@ export async function updateProfile(_: State, fd: FormData) {
     const me = await requireUser()
     const cgpa = str(fd, 'cgpa', 5)
     if (cgpa && !(+cgpa >= 0 && +cgpa <= 10)) throw new Invalid('CGPA must be between 0 and 10.')
+    const percent = (key: string, label: string) => {
+      const v = str(fd, key, 6)
+      if (v && !(+v >= 0 && +v <= 100)) throw new Invalid(`${label} must be between 0 and 100.`)
+      return v ? +v : null
+    }
+    const class10 = percent('class10', 'Class X %')
+    const class12 = percent('class12', 'Class XII %')
+    const backlogs = str(fd, 'backlogs', 3)
     const handles: Record<string, string> = {}
     for (const p of PLATFORM_KEYS) {
       const h = str(fd, p, 60).replace(/^@/, '')
@@ -35,6 +43,9 @@ export async function updateProfile(_: State, fd: FormData) {
           bio: str(fd, 'bio', 1000),
           phone: str(fd, 'phone', 20),
           cgpa: cgpa ? +cgpa : null,
+          class10,
+          class12,
+          backlogs: backlogs ? Math.min(50, Math.max(0, Math.round(+backlogs))) : null,
           links: { linkedin: link(fd, 'linkedin'), portfolio: link(fd, 'portfolio'), resume: link(fd, 'resume') },
           handles,
         },

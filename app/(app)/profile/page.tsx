@@ -34,6 +34,9 @@ export default async function ProfilePage() {
                 <div className="sm:col-span-2"><Field label="Bio"><textarea name="bio" rows={4} maxLength={1000} defaultValue={user.bio ?? ''} className="input" /></Field></div>
                 <Field label="Phone"><input name="phone" maxLength={20} defaultValue={user.phone ?? ''} className="input" inputMode="tel" /></Field>
                 <Field label="CGPA"><input name="cgpa" type="number" step="0.01" min={0} max={10} defaultValue={user.cgpa ?? ''} className="input" /></Field>
+                <Field label="Class X %"><input name="class10" type="number" step="0.01" min={0} max={100} defaultValue={user.class10 ?? ''} className="input" /></Field>
+                <Field label="Class XII %" hint="Or diploma aggregate."><input name="class12" type="number" step="0.01" min={0} max={100} defaultValue={user.class12 ?? ''} className="input" /></Field>
+                <Field label="Active backlogs"><input name="backlogs" type="number" step="1" min={0} max={50} defaultValue={user.backlogs ?? ''} className="input" /></Field>
               </div>
               <fieldset className="grid gap-4 border-t border-zinc-100 pt-5 sm:grid-cols-3">
                 <legend className="mb-3 text-sm font-semibold">Links</legend>

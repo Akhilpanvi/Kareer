@@ -41,6 +41,9 @@ const userSchema = new Schema(
     headline: String,
     bio: String,
     cgpa: Number,
+    class10: Number, // X %
+    class12: Number, // XII %
+    backlogs: Number,
     links: { linkedin: String, portfolio: String, resume: String },
 
     // platform key -> username, e.g. { github: 'octocat' }

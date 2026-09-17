@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Award, BarChart3, LayoutDashboard, ShieldCheck, UserCog, UserRound, Users } from 'lucide-react'
+import { Award, BarChart3, LayoutDashboard, ShieldCheck, Sparkles, UserCog, UserRound, Users } from 'lucide-react'
 
 const STUDENT = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, match: (p: string) => p === '/dashboard' },
@@ -11,6 +11,7 @@ const STUDENT = [
 ]
 const ADMIN = [
   { href: '/admin', label: 'Students', icon: Users, match: (p: string) => p === '/admin' || p.startsWith('/admin/students') },
+  { href: '/admin/shortlist', label: 'AI Shortlisting', icon: Sparkles, match: (p: string) => p.startsWith('/admin/shortlist') },
   { href: '/admin/users', label: 'Users', icon: UserCog, match: (p: string) => p.startsWith('/admin/users') },
   { href: '/admin/team', label: 'Placement Cell Team', icon: ShieldCheck, match: (p: string) => p.startsWith('/admin/team') },
   { href: '/profile', label: 'My Profile', icon: UserRound, match: (p: string) => p === '/profile' },
