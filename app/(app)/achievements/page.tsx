@@ -70,7 +70,7 @@ export default async function AchievementsPage() {
           ) : <Empty>List the technologies you are comfortable with.</Empty>}
         </Card>
 
-        <div id="projects" className="scroll-mt-24 lg:col-span-2">
+        <div id="projects" className="min-w-0 scroll-mt-24 lg:col-span-2">
           <Card title="Projects">
             <Disclosure label="Add project">
               <ActionForm action={addItem.bind(null, 'projects')} submit="Add project" reset className="grid gap-4 sm:grid-cols-2">

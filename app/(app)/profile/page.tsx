@@ -29,7 +29,7 @@ export default async function ProfilePage() {
     <>
       <PageHeader title="Profile" description="Keep your details current — recruiters and Placements see this profile." />
       <div className="grid gap-5 lg:grid-cols-3">
-        <div className="space-y-5 lg:col-span-2">
+        <div className="min-w-0 space-y-5 lg:col-span-2">
           <Card title="About you">
             <ActionForm action={updateProfile} submit="Save profile" className="space-y-5">
               <div className="grid gap-4 sm:grid-cols-2">
@@ -60,7 +60,7 @@ export default async function ProfilePage() {
             </ActionForm>
           </Card>
         </div>
-        <div className="space-y-5">
+        <div className="min-w-0 space-y-5">
           <Card title="Profile completion">
             <CompletionList items={progress.items} percent={progress.percent} />
           </Card>

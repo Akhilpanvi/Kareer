@@ -94,7 +94,7 @@ export default async function PublicProfile({ params }: { params: Promise<{ slug
         )}
 
         <div className="grid gap-5 lg:grid-cols-3">
-          <div className="space-y-5 lg:col-span-2">
+          <div className="min-w-0 space-y-5 lg:col-span-2">
             <Card title="Projects" icon={FolderGit2}>
               {user.projects?.length ? (
                 <ul className="space-y-4">
@@ -128,7 +128,7 @@ export default async function PublicProfile({ params }: { params: Promise<{ slug
             )}
           </div>
 
-          <div className="space-y-5">
+          <div className="min-w-0 space-y-5">
             <Card title="Skills">
               {user.skills?.length ? (
                 <ul className="flex flex-wrap gap-2">

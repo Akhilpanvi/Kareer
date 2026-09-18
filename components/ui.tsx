@@ -3,7 +3,7 @@ import { initials } from '@/lib/format'
 
 export function Card({ title, action, children, className = '', icon: Icon }: { title?: string; action?: React.ReactNode; children: React.ReactNode; className?: string; icon?: LucideIcon }) {
   return (
-    <section className={`card ${className}`}>
+    <section className={`card min-w-0 ${className}`}>
       {title && (
         <header className="flex items-center justify-between gap-3 border-b border-zinc-100 px-5 py-3.5">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">

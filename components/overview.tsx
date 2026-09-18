@@ -120,7 +120,7 @@ export function Overview({ student, actions, self }: { student: Student; actions
       <div className="grid gap-5 lg:grid-cols-3">
         <Card title="LeetCode" icon={Code2} action={<StatusLine stat={stats.leetcode} />}>
           {lc ? (
-            <div className="space-y-5">
+            <div className="min-w-0 space-y-5">
               <Difficulty solved={lc.solved ?? {}} totals={lc.totals} />
               {lc.topics?.length ? <Bars items={lc.topics.slice(0, 5)} /> : null}
             </div>
@@ -179,7 +179,7 @@ export function Overview({ student, actions, self }: { student: Student; actions
             </div>
           ) : <Empty>No projects added yet.</Empty>}
         </Card>
-        <div className="space-y-5">
+        <div className="min-w-0 space-y-5">
           <Card title="Skills" icon={Sparkles} action={add('/achievements', 'Manage')}>
             {user.skills?.length ? (
               <ul className="flex flex-wrap gap-1.5">
