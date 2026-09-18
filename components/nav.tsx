@@ -29,7 +29,7 @@ export function Nav({ admin }: { admin: boolean }) {
             href={href}
             prefetch={false}
             aria-current={active ? 'page' : undefined}
-            className={`flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition ${active ? 'bg-brand-50 text-brand-700' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'}`}
+            className={`relative flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition ${active ? 'bg-brand-50 text-brand-700 before:absolute before:inset-y-1.5 before:-left-0.5 before:w-0.5 before:rounded-full before:bg-gradient-to-b before:from-brand-600 before:to-amber-500' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'}`}
           >
             <Icon className="size-4" />
             {label}

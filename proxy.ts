@@ -7,6 +7,7 @@ export async function proxy(req: NextRequest) {
   const to = (path: string) => NextResponse.redirect(new URL(path, req.url))
 
   if (pathname === '/login') return session ? to(session.role === 'admin' ? '/admin' : '/dashboard') : NextResponse.next()
+  if (pathname === '/') return session ? to(session.role === 'admin' ? '/admin' : '/dashboard') : NextResponse.next()
   if (!session) return to('/login')
   if (pathname.startsWith('/admin') && session.role !== 'admin') return to('/dashboard')
   return NextResponse.next()

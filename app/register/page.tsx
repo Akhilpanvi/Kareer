@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 
 export default function RegisterPage() {
   return (
-    <AuthCard title="Set up your Kloop account" description="Enter the registration number the Placement Cell has on file.">
+    <AuthCard wide title="Welcome to Kloop" description="Set up your account in under a minute — we already have your details from the Placement Cell.">
       {registrationEnabled() ? <RegisterWizard fields={platformFields()} /> : <p className="text-sm text-zinc-600">Account setup is closed. Contact the Placement Cell.</p>}
     </AuthCard>
   )

@@ -1,7 +1,7 @@
 'use client'
 import { useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { CheckCircle2, Loader2, XCircle } from 'lucide-react'
+import { Check as CheckIcon, CheckCircle2, Eye, EyeOff, Loader2, XCircle } from 'lucide-react'
 import { checkHandle, completeProfile, finishRegistration, lookupRegNo, type Check, type Preview } from '@/app/actions/onboarding'
 import { Field } from './ui'
 
@@ -54,21 +54,51 @@ function ProfileFields({ fields, handles = {}, resume = '', portfolio = '', tick
 
 const Alert = ({ text }: { text?: string }) => (text ? <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{text}</p> : null)
 
+const strength = (pw: string) => [pw.length >= 10, pw.length >= 14, /[A-Z]/.test(pw) || /[^a-z0-9]/i.test(pw), /\d/.test(pw)].filter(Boolean).length
+
+function Strength({ value }: { value: string }) {
+  const n = value ? strength(value) : 0
+  const label = ['Too short', 'Okay', 'Good', 'Strong'][Math.max(0, n - 1)] ?? ''
+  return (
+    <span className="mt-2 block">
+      <span className="flex gap-1">
+        {[1, 2, 3, 4].map(i => <span key={i} className={`h-1 flex-1 rounded-full ${i <= n ? (n >= 3 ? 'bg-emerald-500' : 'bg-amber-400') : 'bg-zinc-200'}`} />)}
+      </span>
+      {value && <span className="mt-1 block text-xs text-zinc-500">{label}</span>}
+    </span>
+  )
+}
+
+function Steps({ step }: { step: number }) {
+  return (
+    <ol className="mb-7 flex items-center gap-2">
+      {['You', 'Password', 'Profiles'].map((label, i) => {
+        const n = i + 1, done = n < step, now = n === step
+        return (
+          <li key={label} className="flex flex-1 items-center gap-2">
+            <span className={`grid size-6 shrink-0 place-items-center rounded-full text-xs font-semibold ${done ? 'bg-emerald-500 text-white' : now ? 'bg-brand-600 text-white' : 'bg-zinc-200 text-zinc-500'}`}>
+              {done ? <CheckIcon className="size-3.5" /> : n}
+            </span>
+            <span className={`text-sm ${now ? 'font-medium text-zinc-900' : 'text-zinc-500'}`}>{label}</span>
+            {n < 3 && <span className={`h-px flex-1 ${done ? 'bg-emerald-400' : 'bg-zinc-200'}`} />}
+          </li>
+        )
+      })}
+    </ol>
+  )
+}
+
 export function RegisterWizard({ fields }: { fields: PlatformField[] }) {
   const [step, setStep] = useState(1)
   const [preview, setPreview] = useState<Preview>()
   const [password, setPassword] = useState({ password: '', confirm: '' })
+  const [show, setShow] = useState(false)
   const [error, setError] = useState<string>()
   const [pending, start] = useTransition()
-  const steps = ['Your details', 'Password', 'Profiles']
 
   return (
-    <div className="space-y-5">
-      <ol className="flex gap-2 text-xs">
-        {steps.map((s, i) => (
-          <li key={s} className={`flex-1 border-t-2 pt-2 ${i + 1 <= step ? 'border-brand-600 font-medium text-zinc-900' : 'border-zinc-200 text-zinc-400'}`}>{i + 1}. {s}</li>
-        ))}
-      </ol>
+    <div>
+      <Steps step={step} />
 
       {step === 1 && (
         <form
@@ -85,21 +115,33 @@ export function RegisterWizard({ fields }: { fields: PlatformField[] }) {
             })
           }}
         >
-          <Field label="Registration number">
-            <input name="regNo" required maxLength={20} autoFocus disabled={!!preview} defaultValue={preview?.regNo} className="input" placeholder="2300030001" />
-          </Field>
-          {preview && (
-            <dl className="space-y-2 rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm">
-              {[['Name', preview.name], ['Registration no.', preview.regNo], ['University email', preview.email], ['Branch', preview.branch], ['Batch', preview.batch]].map(([k, v]) => (
-                <div key={k} className="flex justify-between gap-4"><dt className="text-zinc-500">{k}</dt><dd className="truncate text-right font-medium">{v || '—'}</dd></div>
-              ))}
-            </dl>
+          {!preview ? (
+            <>
+              <Field label="Registration number" hint="The number on your ID card.">
+                <input name="regNo" required maxLength={20} autoFocus inputMode="numeric" className="input text-lg tracking-wide" placeholder="2300030001" />
+              </Field>
+              <Alert text={error} />
+              <button className="btn-primary w-full py-2.5" disabled={pending}>{pending ? 'Finding you…' : 'Continue'}</button>
+            </>
+          ) : (
+            <>
+              <div className="rounded-xl border border-zinc-200 bg-gradient-to-br from-brand-50/70 to-white p-5">
+                <div className="flex items-center gap-3">
+                  <span className="grid size-12 place-items-center rounded-full bg-brand-600 text-base font-semibold text-white">{preview.name.split(/\s+/).map(w => w[0]).slice(0, 2).join('')}</span>
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-zinc-900">{preview.name}</p>
+                    <p className="text-sm text-zinc-500">{[preview.regNo, preview.branch, preview.batch && `Batch ${preview.batch}`].filter(Boolean).join(' · ')}</p>
+                  </div>
+                </div>
+                <p className="mt-4 text-xs text-zinc-500">Sign-in email: <span className="font-medium text-zinc-700">{preview.email}</span></p>
+              </div>
+              <Alert text={error} />
+              <div className="flex gap-2">
+                <button type="button" className="btn-outline" onClick={() => (setPreview(undefined), setError(undefined))}>Not me</button>
+                <button className="btn-primary flex-1 py-2.5">That&apos;s me — continue</button>
+              </div>
+            </>
           )}
-          <Alert text={error} />
-          <div className="flex gap-2">
-            {preview && <button type="button" className="btn-outline" onClick={() => (setPreview(undefined), setError(undefined))}>Not me</button>}
-            <button className="btn-primary flex-1" disabled={pending}>{pending ? 'Looking up…' : preview ? 'Next' : 'Continue'}</button>
-          </div>
         </form>
       )}
 
@@ -114,19 +156,27 @@ export function RegisterWizard({ fields }: { fields: PlatformField[] }) {
             setStep(3)
           }}
         >
-          <Field label="Password" hint="At least 10 characters."><input type="password" required minLength={10} maxLength={128} autoComplete="new-password" autoFocus value={password.password} onChange={e => setPassword({ ...password, password: e.target.value })} className="input" /></Field>
-          <Field label="Confirm password"><input type="password" required minLength={10} maxLength={128} autoComplete="new-password" value={password.confirm} onChange={e => setPassword({ ...password, confirm: e.target.value })} className="input" /></Field>
+          <Field label="Create a password" hint="At least 10 characters. You will use it with your university email.">
+            <span className="relative block">
+              <input type={show ? 'text' : 'password'} required minLength={10} maxLength={128} autoComplete="new-password" autoFocus value={password.password} onChange={e => setPassword({ ...password, password: e.target.value })} className="input pr-10" />
+              <button type="button" onClick={() => setShow(s => !s)} className="absolute top-1/2 right-2 -translate-y-1/2 rounded p-1 text-zinc-400 hover:text-zinc-700" aria-label={show ? 'Hide password' : 'Show password'}>
+                {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              </button>
+            </span>
+            <Strength value={password.password} />
+          </Field>
+          <Field label="Confirm password"><input type={show ? 'text' : 'password'} required minLength={10} maxLength={128} autoComplete="new-password" value={password.confirm} onChange={e => setPassword({ ...password, confirm: e.target.value })} className="input" /></Field>
           <Alert text={error} />
           <div className="flex gap-2">
             <button type="button" className="btn-outline" onClick={() => (setError(undefined), setStep(1))}>Back</button>
-            <button className="btn-primary flex-1">Next</button>
+            <button className="btn-primary flex-1 py-2.5">Next</button>
           </div>
         </form>
       )}
 
       {step === 3 && preview && (
         <form
-          className="space-y-3"
+          className="space-y-4"
           onSubmit={e => {
             e.preventDefault()
             const fd = new FormData(e.currentTarget)
@@ -139,12 +189,14 @@ export function RegisterWizard({ fields }: { fields: PlatformField[] }) {
             })
           }}
         >
-          <p className="text-sm text-zinc-600">Usernames are checked with each platform. Required: {fields.filter(f => f.required).map(f => f.label).join(', ')}.</p>
+          <p className="rounded-lg bg-zinc-50 px-3 py-2 text-sm text-zinc-600">
+            Paste your profile links or usernames — we check them instantly. {fields.filter(f => f.required).map(f => f.label).join(', ')} are required.
+          </p>
           <ProfileFields fields={fields} ticket={preview.ticket} />
           <Alert text={error} />
           <div className="flex gap-2 pt-1">
             <button type="button" className="btn-outline" onClick={() => (setError(undefined), setStep(2))}>Back</button>
-            <button className="btn-primary flex-1" disabled={pending}>{pending ? 'Verifying and creating account…' : 'Create account'}</button>
+            <button className="btn-primary flex-1 py-2.5" disabled={pending}>{pending ? 'Setting up your account…' : 'Create my account'}</button>
           </div>
         </form>
       )}

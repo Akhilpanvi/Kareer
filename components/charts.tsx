@@ -114,8 +114,15 @@ export function ScoreRing({ score }: { score: number }) {
   return (
     <div className="relative size-24 shrink-0">
       <svg viewBox="0 0 80 80" className="size-full -rotate-90">
+        <defs>
+          <linearGradient id="kloop-ring" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="var(--color-brand-700)" />
+            <stop offset="60%" stopColor="var(--color-brand-500)" />
+            <stop offset="100%" stopColor="#e07a2f" />
+          </linearGradient>
+        </defs>
         <circle cx={40} cy={40} r={r} fill="none" strokeWidth={7} className="stroke-zinc-100" />
-        <circle cx={40} cy={40} r={r} fill="none" strokeWidth={7} strokeLinecap="round" className="stroke-brand-600" strokeDasharray={c} strokeDashoffset={c * (1 - score / 100)} />
+        <circle cx={40} cy={40} r={r} fill="none" strokeWidth={7} strokeLinecap="round" stroke="url(#kloop-ring)" strokeDasharray={c} strokeDashoffset={c * (1 - score / 100)} />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center leading-none">
         <span className="text-2xl font-semibold tabular-nums">{score}</span>

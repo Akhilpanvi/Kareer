@@ -14,7 +14,7 @@ export default async function ChangePasswordPage() {
   if (!me.mustChangePassword) redirect(me.role === 'admin' ? '/admin' : '/dashboard')
 
   return (
-    <AuthCard title="Set your password" description={`Welcome, ${me.name}. You're signed in with a temporary password — choose your own to continue.`}>
+    <AuthCard back={false} title="Set your password" description={`Welcome, ${me.name}. You're signed in with a temporary password — choose your own to continue.`}>
       <ActionForm action={setFirstPassword} submit="Set password and continue">
         <Field label="Temporary password"><input name="current" type="password" required maxLength={128} autoComplete="current-password" autoFocus className="input" /></Field>
         <Field label="New password" hint="At least 10 characters."><input name="next" type="password" required minLength={10} maxLength={128} autoComplete="new-password" className="input" /></Field>

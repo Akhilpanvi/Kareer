@@ -71,7 +71,7 @@ export function Avatar({ name, src, size = 'size-10' }: { name: string; src?: st
 export function Meter({ value, max = 100, label }: { value: number; max?: number; label?: string }) {
   return (
     <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-100" role="meter" aria-valuenow={value} aria-valuemax={max} aria-label={label}>
-      <div className="h-full rounded-full bg-brand-600" style={{ width: `${Math.min(100, (value / max) * 100)}%` }} />
+      <div className="h-full rounded-full bg-gradient-to-r from-brand-700 to-brand-500" style={{ width: `${Math.min(100, (value / max) * 100)}%` }} />
     </div>
   )
 }
