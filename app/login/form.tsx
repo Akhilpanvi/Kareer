@@ -9,7 +9,7 @@ export function LoginForm({ domain }: { domain: string }) {
     <form onSubmit={e => (e.preventDefault(), start(() => run(new FormData(e.currentTarget))))} className="mt-8 space-y-4">
       <label className="block">
         <span className="label">Email</span>
-        <input name="id" type="email" required maxLength={120} autoComplete="email" autoFocus className="input" placeholder={`2300030001@${domain}`} />
+        <input name="id" type="email" required maxLength={120} autoComplete="email" autoFocus className="input" placeholder={`2400030001@${domain}`} />
       </label>
       <label className="block">
         <span className="label">Password</span>

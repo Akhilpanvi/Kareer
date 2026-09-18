@@ -118,7 +118,7 @@ export function RegisterWizard({ fields }: { fields: PlatformField[] }) {
           {!preview ? (
             <>
               <Field label="Registration number" hint="The number on your ID card.">
-                <input name="regNo" required maxLength={20} autoFocus inputMode="numeric" className="input text-lg tracking-wide" placeholder="2300030001" />
+                <input name="regNo" required maxLength={20} autoFocus inputMode="numeric" className="input text-lg tracking-wide" placeholder="2400030001" />
               </Field>
               <Alert text={error} />
               <button className="btn-primary w-full py-2.5" disabled={pending}>{pending ? 'Finding you…' : 'Continue'}</button>

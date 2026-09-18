@@ -15,7 +15,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <img src="/brand/kl-lockup.png" alt="KL (Deemed to be University)" className="h-14 w-auto self-start" />
         <div className="mx-auto w-full max-w-sm py-12">
           <h1 className="text-2xl font-semibold tracking-tight">Sign in to <span className="wordmark">Kloop</span></h1>
-          <p className="mt-1.5 text-sm text-zinc-500">{`Sign in with your university email — your registration number, e.g. 2300030001@${EMAIL_DOMAIN}`}</p>
+          <p className="mt-1.5 text-sm text-zinc-500">{`Sign in with your university email — your registration number, e.g. 2400030001@${EMAIL_DOMAIN}`}</p>
                     {reset && <p role="status" className="mt-6 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">Password updated. Sign in with your new password.</p>}
           <LoginForm domain={EMAIL_DOMAIN} />
           {registrationEnabled() && <p className="mt-6 text-sm text-zinc-600">First time here? <Link href="/register" prefetch={false} className="font-medium text-brand-700 hover:underline">Set up your account</Link></p>}

@@ -79,7 +79,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         <Disclosure label="Add one student">
           <ActionForm action={createStudent} submit="Add student" reset className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <Field label="Registration no."><input name="regNo" required maxLength={20} className="input" placeholder="2300030001" /></Field>
+              <Field label="Registration no."><input name="regNo" required maxLength={20} className="input" placeholder="2400030001" /></Field>
               <Field label="Name"><input name="name" required maxLength={120} className="input" /></Field>
               <Field label="Email (optional)"><input name="email" type="email" maxLength={120} className="input" placeholder={`regNo@${EMAIL_DOMAIN}`} /></Field>
               <Field label="Branch"><input name="branch" maxLength={40} className="input" placeholder="CSE" /></Field>
