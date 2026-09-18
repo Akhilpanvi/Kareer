@@ -110,7 +110,7 @@ export function Brand({ compact }: { compact?: boolean }) {
       <img src="/brand/kl-seal.png" alt="KL University" className="size-9" />
       <span className="leading-tight">
         <span className="wordmark block text-[17px] leading-tight">Kloop</span>
-        {!compact && <span className="block text-[11px] text-zinc-500">Placement Cell · KL University</span>}
+        {!compact && <span className="block text-[11px] text-zinc-500">Placements · KL University</span>}
       </span>
     </span>
   )

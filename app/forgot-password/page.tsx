@@ -16,7 +16,7 @@ export default function ForgotPasswordPage() {
           <Field label="Email"><input name="id" type="email" required maxLength={120} autoComplete="email" autoFocus className="input" /></Field>
         </ActionForm>
       ) : (
-        <p className="text-sm text-zinc-600">Email reset isn&apos;t set up yet. Contact the Placement Cell to reset your password.</p>
+        <p className="text-sm text-zinc-600">Email reset isn&apos;t set up yet. Contact Placements to reset your password.</p>
       )}
     </AuthCard>
   )

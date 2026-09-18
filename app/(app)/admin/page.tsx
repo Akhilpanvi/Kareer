@@ -14,7 +14,7 @@ import { Avatar, Badge, Card, Disclosure, Field, Meter, PageHeader, Stat } from 
 import { SyncEveryone } from './sync'
 import { User } from '@/models/User'
 
-export const metadata: Metadata = { title: 'Placement Cell' }
+export const metadata: Metadata = { title: 'Placements' }
 
 export default async function AdminPage({ searchParams }: { searchParams: Promise<Params> }) {
   await requireAdmin()

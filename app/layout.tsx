@@ -7,8 +7,8 @@ const sora = Sora({ subsets: ['latin'], weight: ['600', '700'], variable: '--fon
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://kloop.klef.me'),
-  title: { default: 'Kloop · KL University Placement Cell', template: '%s · Kloop' },
-  description: 'Kloop — student technical growth and profile strength for the KL University Placement Cell.',
+  title: { default: 'Kloop · KL University Placements', template: '%s · Kloop' },
+  description: 'Kloop — student technical growth and profile strength for the KL University Placements.',
   robots: { index: false, follow: false },
 }
 

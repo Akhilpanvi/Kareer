@@ -235,13 +235,13 @@ export async function bulkStudents(fd: FormData) {
   }
 }
 
-// -- Placement Cell (admin) accounts --
+// -- Placements (admin) accounts --
 
 export async function createAdmin(_: State, fd: FormData) {
   return attempt(async () => {
     await requireAdmin()
     const email = str(fd, 'email', 120).toLowerCase()
-    const name = str(fd, 'name', 120) || 'Placement Cell'
+    const name = str(fd, 'name', 120) || 'Placements'
     if (!email || !EMAIL.test(email)) throw new Invalid('Enter a valid email address.')
     const password = tempPassword()
     try {

@@ -41,7 +41,7 @@ export async function login(_: State, fd: FormData): Promise<State> {
             ? { $set: { failedLogins: 0, lockedUntil: new Date(Date.now() + LOCK_MS) } }
             : { $inc: { failedLogins: 1 } },
         )
-      return { error: user && valid && !user.active ? 'This account is disabled. Contact the Placement Cell.' : 'Invalid credentials.' }
+      return { error: user && valid && !user.active ? 'This account is disabled. Contact Placements.' : 'Invalid credentials.' }
     }
 
     after(() => User.updateOne({ _id: user._id }, { $set: { failedLogins: 0, lastLoginAt: new Date() }, $unset: { lockedUntil: 1 } }))
@@ -84,7 +84,7 @@ const sha256 = (v: string) => createHash('sha256').update(v).digest('hex')
 
 /** Always answers the same way so the form can't be used to discover accounts. */
 export async function requestReset(_: State, fd: FormData): Promise<State> {
-  if (!resetEnabled()) return { error: 'Password reset by email is not available. Contact the Placement Cell.' }
+  if (!resetEnabled()) return { error: 'Password reset by email is not available. Contact Placements.' }
   const id = str(fd, 'id', 120)
   if (!id) return { error: 'Enter your email.' }
   const sent = { ok: 'If an account matches, we have emailed a reset link to its address. The link expires in 30 minutes.' }

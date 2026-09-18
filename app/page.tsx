@@ -4,7 +4,7 @@ import { ArrowRight, BarChart3, GitBranch, Share2, Sparkles, Target, Trophy } fr
 import { registrationEnabled } from '@/lib/onboarding'
 
 export const metadata: Metadata = {
-  title: { absolute: 'Kloop · KL University Placement Cell' },
+  title: { absolute: 'Kloop · KL University Placements' },
   description: 'Kloop keeps every KL University student’s coding profile, projects and placement readiness in one place — and gives them a portfolio link to share.',
   robots: { index: true, follow: true },
 }
@@ -14,8 +14,8 @@ const FEATURES = [
   { icon: Target, title: 'Profile strength', text: 'One score out of 100 showing exactly what to fix next — problem solving, projects, credentials, skills.' },
   { icon: Share2, title: 'A portfolio link', text: 'kloop.klef.me/profile/Your_Name — skills, projects and stats in one page you can send to recruiters.' },
   { icon: Sparkles, title: 'Kloop Coach', text: 'An AI coach that reads your own profile and tells you what to practise this week.' },
-  { icon: Trophy, title: 'Achievements that count', text: 'Certifications, hackathons and projects, kept where the Placement Cell can see them.' },
-  { icon: BarChart3, title: 'Placement Cell view', text: 'Shortlisting against a job description, cohort statistics and exports for drives.' },
+  { icon: Trophy, title: 'Achievements that count', text: 'Certifications, hackathons and projects, kept where Placements can see them.' },
+  { icon: BarChart3, title: 'Placements view', text: 'Shortlisting against a job description, cohort statistics and exports for drives.' },
 ]
 
 export default function Landing() {
@@ -28,7 +28,7 @@ export default function Landing() {
             <img src="/brand/kl-seal.png" alt="KL University" className="size-9" />
             <span className="leading-tight">
               <span className="wordmark block text-lg">Kloop</span>
-              <span className="block text-[11px] text-zinc-500">Placement Cell · KL University</span>
+              <span className="block text-[11px] text-zinc-500">Placements · KL University</span>
             </span>
           </span>
           <nav className="flex items-center gap-2">
@@ -59,7 +59,7 @@ export default function Landing() {
               )}
               <Link href="/login" prefetch={false} className="btn border border-white/25 px-5 py-3 text-base font-medium text-white hover:bg-white/10">I already have an account</Link>
             </div>
-            <p className="mt-6 text-sm text-zinc-400">Takes under a minute — the Placement Cell already has your details.</p>
+            <p className="mt-6 text-sm text-zinc-400">Takes under a minute — Placements already has your details.</p>
           </div>
         </section>
 

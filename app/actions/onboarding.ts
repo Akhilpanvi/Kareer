@@ -33,14 +33,14 @@ async function subject(ticket?: string) {
 }
 
 export async function lookupRegNo(regNo: string): Promise<{ error: string } | Preview> {
-  if (!registrationEnabled()) return { error: 'Registration is closed. Contact the Placement Cell.' }
+  if (!registrationEnabled()) return { error: 'Registration is closed. Contact Placements.' }
   const reg = regNo.trim().toUpperCase().slice(0, 20)
   if (!REGNO.test(reg)) return { error: 'Enter your registration number.' }
   await db()
   const u = await User.findOne({ regNo: reg, role: 'student' }).select('+passwordHash name regNo email branch batch active').lean()
-  if (!u) return { error: "This registration number isn't in the Placement Cell list. Contact the Placement Cell." }
+  if (!u) return { error: "This registration number isn't on the Placements list. Contact Placements." }
   if (u.passwordHash) return { error: 'This account is already set up. Sign in, or use "Forgot password".' }
-  if (!u.active) return { error: 'This account is disabled. Contact the Placement Cell.' }
+  if (!u.active) return { error: 'This account is disabled. Contact Placements.' }
   return { ticket: await seal<Ticket>({ reg: String(u._id), purpose: 'register' }, 30 * 60), name: u.name, regNo: u.regNo, email: maskEmail(u.email), branch: u.branch, batch: u.batch }
 }
 

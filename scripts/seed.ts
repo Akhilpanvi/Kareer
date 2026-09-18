@@ -27,7 +27,7 @@ const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase()
 if (adminEmail && !(await User.exists({ email: adminEmail }))) {
   const password = process.env.ADMIN_PASSWORD || tempPassword()
   if (passwordIssue(password)) throw new Error(`ADMIN_PASSWORD: ${passwordIssue(password)}`)
-  await User.create({ regNo: 'ADMIN', email: adminEmail, name: 'Placement Cell', role: 'admin', mustChangePassword: !process.env.ADMIN_PASSWORD, passwordHash: await hashPassword(password) })
+  await User.create({ regNo: 'ADMIN', email: adminEmail, name: 'Placements', role: 'admin', mustChangePassword: !process.env.ADMIN_PASSWORD, passwordHash: await hashPassword(password) })
   issued.push(['ADMIN', adminEmail, process.env.ADMIN_PASSWORD ? '(from ADMIN_PASSWORD)' : password])
   console.log(`created admin ${adminEmail}`)
 }

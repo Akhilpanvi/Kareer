@@ -1,6 +1,6 @@
 import Link from 'next/link'
 
-const POINTS = ['Your coding stats, synced automatically', 'A portfolio link you can share', 'Seen by the Placement Cell']
+const POINTS = ['Your coding stats, synced automatically', 'A portfolio link you can share', 'Seen by Placements']
 
 /** Shared split-screen shell for sign-in, setup and password screens. */
 export function AuthCard({ title, description, children, wide, back = true }: { title: string; description: string; children: React.ReactNode; wide?: boolean; back?: boolean }) {
@@ -24,7 +24,7 @@ export function AuthCard({ title, description, children, wide, back = true }: { 
         <div className="relative flex h-full flex-col justify-end gap-8 p-12 text-white">
           <div>
             <p className="wordmark text-3xl">Kloop</p>
-            <p className="mt-1 text-sm text-zinc-400">Placement Cell · KL University</p>
+            <p className="mt-1 text-sm text-zinc-400">Placements · KL University</p>
           </div>
           <ul className="space-y-3 text-sm text-zinc-300">
             {POINTS.map(t => (

@@ -5,7 +5,7 @@ import { breakdown, MAX } from './score'
 export const assistantEnabled = () => !!process.env.GEMINI_API_KEY
 export const DAILY_LIMIT = Number(process.env.GEMINI_DAILY_LIMIT ?? 20)
 
-const SYSTEM = `You are Kloop Coach, the KL University Placement Cell assistant inside Kloop.
+const SYSTEM = `You are Kloop Coach, the KL University Placements assistant inside Kloop.
 Help the signed-in student improve placement preparation: DSA practice, coding contests, GitHub and projects, skills, certifications, interviews and profile strength.
 Rules:
 - Use only the STUDENT CONTEXT below for facts about the student. Never invent numbers, companies, deadlines or placement results.

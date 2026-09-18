@@ -1,6 +1,6 @@
 # Kloop
 
-Placement Cell platform for KL University — every student gets a login and a single profile showing coding activity, projects, certifications and a profile strength score.
+Placements platform for KL University — every student gets a login and a single profile showing coding activity, projects, certifications and a profile strength score.
 
 **Live:** https://kloop.klef.me
 
@@ -15,7 +15,7 @@ app/
   (app)/profile             own details, links, platform usernames, password
   (app)/achievements        skills, projects, certifications, achievements
   (app)/stats               detailed platform statistics
-  (app)/admin               Placement Cell: search, filter, sort, export
+  (app)/admin               Placements: search, filter, sort, export
   (app)/admin/students/[id] student view + sync / reset password / disable
   actions/                  server actions (auth, profile, admin)
   api/cron/refresh          scheduled refresh of stale platform data
@@ -93,9 +93,13 @@ Students get a read-only coach grounded in their own cached profile (skills, pro
 
 ### Roster upload and student setup
 
-The Placement Cell uploads students (`regNo,name,branch,batch` — email defaults to `regNo@kluniversity.in`, set `EMAIL_DOMAIN` to change — optional `campus,section,phone`) from **Students → Add students**; rows without a `password` column create accounts with no password. Those students finish setup themselves at `/register`: registration number → details preview (email partly masked) → password → platform usernames and links. Usernames are checked live against each platform and must exist; GitHub, LeetCode and CodeChef are required (`REQUIRED` in `lib/onboarding.ts`), Codeforces optional. A resume link is required, portfolio optional. The first fetch is stored, so the dashboard has data immediately. `REGISTRATION=off` closes setup; admins can undo a setup with **Reset setup** on the student page.
+Placements uploads students (`regNo,name,branch,batch` — email defaults to `regNo@kluniversity.in`, set `EMAIL_DOMAIN` to change — optional `campus,section,phone`) from **Students → Add students**; rows without a `password` column create accounts with no password. Those students finish setup themselves at `/register`: registration number → details preview (email partly masked) → password → platform usernames and links. Usernames are checked live against each platform and must exist; GitHub, LeetCode and CodeChef are required (`REQUIRED` in `lib/onboarding.ts`), Codeforces optional. A resume link is required, portfolio optional. The first fetch is stored, so the dashboard has data immediately. `REGISTRATION=off` closes setup; admins can undo a setup with **Reset setup** on the student page.
 
 Any signed-in student missing a required username, holding a username that no longer exists, or missing a resume link gets a blocking popup with the same live checks until it is fixed. Live checks are capped at 60/day per account.
+
+### Profile completion
+
+`lib/completion.ts` scores 15 items (verified usernames, resume, headline, bio, CGPA, Class X/XII, LinkedIn, phone, 3+ skills, a project, a certification, an achievement). Students see the percentage and the remaining items on their dashboard and Profile, and get one dismissible nudge per sign-in (`sessionStorage`) until they hit 100% — after that the nudge and the dashboard card disappear. Missing required usernames or resume still raise the blocking popup instead.
 
 ### Public profiles
 
@@ -112,7 +116,7 @@ Every student gets `/{slug}` from their name (`Akhil_Panvi`, reg-no tail appende
 ### Passwords
 
 - Students and admins change their own password from **Profile** (click your name in the sidebar).
-- Admins reset student passwords from the student page, and other admins from **Placement Cell Team**.
+- Admins reset student passwords from the student page, and other admins from **Placements Team**.
 - Locked out of every admin account? From a trusted machine with `MONGODB_URI`: `npm run reset-password -- <email|regNo>`.
 - **Forgot password?** emails a single-use link (30 min expiry, one request per account every 5 min, same response whether or not the account exists).
 

@@ -9,6 +9,8 @@ import { ActionForm } from '@/components/forms'
 import { ChangePassword } from '@/components/change-password'
 import { Card, Field, PageHeader } from '@/components/ui'
 import { PublicLink } from '@/components/public-link'
+import { CompletionList } from '@/components/completion'
+import { completion } from '@/lib/completion'
 import { appUrl } from '@/lib/mail'
 import { StatusLine } from '@/components/overview'
 
@@ -20,11 +22,12 @@ export default async function ProfilePage() {
   const s = await loadStudent(me._id)
   if (!s) notFound()
   const { user, stats } = s
+  const progress = completion(user, Object.values(stats))
   const official = [['Name', user.name], ['Registration no.', user.regNo], ['Email', user.email], ['Branch', user.branch], ['Batch', user.batch], ['Campus', user.campus], ['Section', user.section]]
 
   return (
     <>
-      <PageHeader title="Profile" description="Keep your details current — recruiters and the Placement Cell see this profile." />
+      <PageHeader title="Profile" description="Keep your details current — recruiters and Placements see this profile." />
       <div className="grid gap-5 lg:grid-cols-3">
         <div className="space-y-5 lg:col-span-2">
           <Card title="About you">
@@ -58,6 +61,9 @@ export default async function ProfilePage() {
           </Card>
         </div>
         <div className="space-y-5">
+          <Card title="Profile completion">
+            <CompletionList items={progress.items} percent={progress.percent} />
+          </Card>
           {user.slug && (
             <Card title="Public profile">
               <PublicLink url={`${appUrl()}/profile/${user.slug}`} path={`${appUrl().replace(/^https?:\/\//, '')}/profile/${user.slug}`} isPublic={user.publicProfile !== false} />
@@ -72,7 +78,7 @@ export default async function ProfilePage() {
                 </div>
               ))}
             </dl>
-            <p className="mt-4 text-xs text-zinc-500">Managed by the Placement Cell. Contact them for corrections.</p>
+            <p className="mt-4 text-xs text-zinc-500">Managed by Placements. Contact them for corrections.</p>
           </Card>
           <ChangePassword />
         </div>
@@ -84,14 +90,14 @@ export default async function ProfilePage() {
 function AdminProfile({ name, email }: { name: string; email: string }) {
   return (
     <>
-      <PageHeader title="Profile" description="Your Placement Cell account." />
+      <PageHeader title="Profile" description="Your Placements account." />
       <div className="grid max-w-4xl gap-5 md:grid-cols-2">
         <Card title="Account">
           <ActionForm action={updateAccount} submit="Save changes">
             <Field label="Name"><input name="name" required maxLength={120} defaultValue={name} className="input" /></Field>
             <Field label="Email" hint="Used to sign in and to receive password reset links."><input name="email" type="email" required maxLength={120} defaultValue={email} autoComplete="email" className="input" /></Field>
             <Field label="Current password" hint="Required only when changing your email."><input name="current" type="password" maxLength={128} autoComplete="current-password" className="input" /></Field>
-            <p className="text-xs text-zinc-500">Role: Placement Cell admin</p>
+            <p className="text-xs text-zinc-500">Role: Placements admin</p>
           </ActionForm>
         </Card>
         <ChangePassword />

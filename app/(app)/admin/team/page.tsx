@@ -8,7 +8,7 @@ import { Avatar, Badge, Card, Disclosure, Field, PageHeader } from '@/components
 import { User } from '@/models/User'
 import { AdminRow } from './actions'
 
-export const metadata: Metadata = { title: 'Placement Cell Team' }
+export const metadata: Metadata = { title: 'Placements Team' }
 
 export default async function TeamPage() {
   const me = await requireAdmin()
@@ -17,12 +17,12 @@ export default async function TeamPage() {
 
   return (
     <>
-      <PageHeader title="Placement Cell Team" description="Admin accounts that can manage students and profile data." />
+      <PageHeader title="Placements Team" description="Admin accounts that can manage students and profile data." />
 
       <Card title="Add an admin" className="mb-5">
         <Disclosure label="Add admin">
           <ActionForm action={createAdmin} submit="Create account" reset className="grid gap-4 sm:grid-cols-2">
-            <Field label="Name"><input name="name" maxLength={120} className="input" placeholder="Placement Cell" /></Field>
+            <Field label="Name"><input name="name" maxLength={120} className="input" placeholder="Placements" /></Field>
             <Field label="Email"><input name="email" type="email" required maxLength={120} className="input" /></Field>
           </ActionForm>
         </Disclosure>

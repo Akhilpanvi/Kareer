@@ -60,7 +60,7 @@ export default async function PublicProfile({ params }: { params: Promise<{ slug
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/brand/kl-lockup.png" alt="KL (Deemed to be University)" className="h-8 w-auto" />
-          <span className="text-xs text-zinc-500"><span className="wordmark text-sm">Kloop</span> · Placement Cell</span>
+          <span className="text-xs text-zinc-500"><span className="wordmark text-sm">Kloop</span> · Placements</span>
         </div>
       </header>
 
@@ -182,7 +182,7 @@ export default async function PublicProfile({ params }: { params: Promise<{ slug
         </div>
 
         <p className="pb-4 text-center text-xs text-zinc-400">
-          Published from <Link href="/login" className="hover:text-zinc-600">Kloop</Link> · KL University Placement Cell
+          Published from <Link href="/login" className="hover:text-zinc-600">Kloop</Link> · KL University Placements
         </p>
       </div>
     </main>
